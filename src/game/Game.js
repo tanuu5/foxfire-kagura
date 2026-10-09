@@ -25,7 +25,7 @@ import { Boss } from './Boss.js';
 import { makeDanmaku } from './danmaku.js';
 import { SHAPE, ICON } from './atlas.js';
 import { STAGES } from './stages/index.js';
-import { makePlaceholderEnemy } from '../chara/placeholders.js';
+import { makeEnemyModel, preloadEnemyModels, warmEnemyModels } from '../chara/enemies.js';
 import { makePlayerModel, makeBossModel } from '../chara/actors.js';
 
 // 状態の表（雛形の約束）。title：タイトル ／ hud ／ touch ／ input：play・actions・menu ／ music ／ modal ／ duck
@@ -76,7 +76,7 @@ export class Game {
 
     // 見た目のモデル（本物ができるまでは仮のもの）
     this.models = {
-      make: (kind, def) => (kind.startsWith('girl:') ? makeBossModel(kind.slice(5)) : makePlaceholderEnemy(kind, { ...def, colorHex: COLOR_HEX[def.color] })),
+      make: (kind, def) => (kind.startsWith('girl:') ? makeBossModel(kind.slice(5)) : makeEnemyModel(kind, def)),
     };
 
     // 仕組み
@@ -109,6 +109,12 @@ export class Game {
 
   async init() {
     await Promise.all([loadFonts(), this.world.preload()]);
+    // 敵のモデル：形と顔を先に作り、シェーダーを 1 回描いてコンパイルしておく（最初に出たときに止まらないように）
+    const kinds = Object.values(KIND);
+    preloadEnemyModels(kinds);
+    const done = warmEnemyModels(this.field.scene, kinds);
+    this.renderer.render(1 / 60);
+    done();
     this.world.setStageNow('title') || this.world.setStageNow('test');
     this.titleScene = new TitleScene(this.world);
     this.setState('title');
@@ -712,7 +718,6 @@ export class Game {
   }
 }
 
-const COLOR_HEX = { sky: 0x7cc8ff, orange: 0xffa060, green: 0x6fe08a, purple: 0xb07cff, violet: 0xd08cff, cyan: 0x6ff0ff, pink: 0xff9cc8, gold: 0xffd060, red: 0xff6060 };
 
 /** 字体を読み込む（オフラインでも止まらないよう、長く待たない）。 */
 async function loadFonts() {
