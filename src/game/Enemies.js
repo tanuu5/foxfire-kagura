@@ -101,6 +101,19 @@ export class Enemy {
     this.facing = 0;
   }
   *moveBy(dx, dy, frames, e = 'outQuad') { yield* this.moveTo(this.x + dx, this.y + dy, frames, e); }
+  /** 奥（z が負）から手前のフィールドへ近づく。近づくまでは当たらない。 */
+  *approach(frames = 60, z0 = -700) {
+    const was = this.hittable;
+    this.hittable = false;
+    this.z = z0;
+    for (let i = 1; i <= frames; i++) {
+      const k = 1 - Math.pow(1 - i / frames, 3);
+      this.z = z0 * (1 - k);
+      yield 1;
+    }
+    this.z = 0;
+    this.hittable = was;
+  }
   /** 速さを与えて、画面の外へ出るまで待つ。 */
   *leave(vx = 0, vy = 1.6, ax = 0, ay = 0) {
     this.vx = vx; this.vy = vy; this.ax = ax; this.ay = ay;

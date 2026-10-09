@@ -43,9 +43,9 @@ export function makeSpellBg() {
         // 放射の線
         float rad = smoothstep(0.02, 0.0, abs(fract(a1 * 8.0 / 6.2832) - 0.5) * r) * step(0.30, r) * step(r, 0.52);
         m += rad * 0.5;
-        float glow = exp(-abs(r - 0.7) * 3.0) * 0.12;
-        float dark = 0.34 * smoothstep(0.0, 1.6, r) + 0.2;
-        vec3 col = uColor * (m * 0.55 + glow);
+        float glow = exp(-abs(r - 0.7) * 3.0) * 0.04;
+        float dark = 0.3 * smoothstep(0.0, 1.6, r) + 0.28;
+        vec3 col = uColor * (m * 0.22 + glow);
         // 暗くする（アルファ）と、光（足す）を前もって掛けて出す
         float alpha = uA * dark;
         gl_FragColor = vec4(col * uA, alpha);

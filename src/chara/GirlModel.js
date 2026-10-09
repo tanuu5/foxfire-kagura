@@ -723,6 +723,12 @@ export class GirlModel {
   setPose(p) { this.pose = p; }
   setTalking(on) { this.talking = !!on; }
 
+  /** 全体の明るさ（1 がふつう。会話で話していない側は 0.55 くらい）。 */
+  setDim(v) {
+    this.mat.userData.u.uDim.value = v;
+    this.faceMat.color.setScalar(v);
+  }
+
   /** 当たったときの白い点滅（0〜1）。 */
   setFlash(v) {
     this.mat.userData.u.uFlash.value = v;

@@ -117,7 +117,9 @@ export class Hud {
   }
 
   /** 中央の知らせ（ステージ名など）。text を空にすると消す。 */
-  center(text, sub = '') {
+  center(text, sub = '', cls = '') {
+    this.centerEl.className = 'center-msg' + (cls ? ' ' + cls : '');
+    this.subEl.className = 'sub-msg' + (cls ? ' ' + cls : '');
     this.centerEl.textContent = text;
     this.centerEl.classList.toggle('hidden', !text);
     this.subEl.textContent = sub;

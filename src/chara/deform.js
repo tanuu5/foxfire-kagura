@@ -88,6 +88,7 @@ export function charMaterial(bones, o = {}) {
     uFlash: { value: 0 },
     uFade: { value: 1 },
     uShade: { value: new THREE.Color(o.shade ?? 0xffe6ea) },   // 陰の色味（灰色ではなく、少し赤みのある陰に）
+    uDim: { value: 1 },                                          // 全体の明るさ（会話で話していない側を暗く）
   };
   m.userData.u = U;
   m.onBeforeCompile = (sh) => {
@@ -97,7 +98,7 @@ export function charMaterial(bones, o = {}) {
       .replace('#include <beginnormal_vertex>', '#include <beginnormal_vertex>\nboneSetup();\nobjectNormal = boneR * objectNormal;')
       .replace('#include <begin_vertex>', '#include <begin_vertex>\ntransformed = boneR * (transformed - bonePivot) + bonePivot;');
     sh.fragmentShader = sh.fragmentShader
-      .replace('#include <common>', '#include <common>\nuniform float uRim;\nuniform vec3 uRimColor;\nuniform float uFlash;\nuniform float uFade;\nuniform vec3 uShade;')
+      .replace('#include <common>', '#include <common>\nuniform float uRim;\nuniform vec3 uRimColor;\nuniform float uFlash;\nuniform float uFade;\nuniform vec3 uShade;\nuniform float uDim;')
       .replace('#include <opaque_fragment>', `
         {
           // 陰になったところを少し色づける（明るさ ÷ 地の色 で陰の深さを測る）
@@ -107,6 +108,7 @@ export function charMaterial(bones, o = {}) {
           float fr = 1.0 - clamp(dot(normalize(normal + vec3(1e-6)), vd), 0.0, 1.0);
           outgoingLight += uRimColor * uRim * smoothstep(0.6, 0.98, fr) * 0.4;
           outgoingLight = mix(outgoingLight, vec3(1.0), clamp(uFlash, 0.0, 1.0));
+          outgoingLight *= uDim;
           diffuseColor.a *= uFade;
         }
         #include <opaque_fragment>`);

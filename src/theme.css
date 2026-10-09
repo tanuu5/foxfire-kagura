@@ -28,7 +28,7 @@ input[type="range"] { width: 10em; accent-color: var(--shu); }
 select { font: inherit; padding: 0.25em 0.5em; border-radius: 6px; border: 1px solid var(--panel-edge); background: #1d1830; color: var(--ink); }
 
 /* タイトル */
-#title { justify-content: flex-end; align-items: flex-start; padding-left: calc(6vw + var(--safe-l)); padding-bottom: calc(10vh + var(--safe-b)); }
+.screen#title { justify-content: center; align-items: flex-start; padding-left: calc(7vw + var(--safe-l)); padding-top: calc(4vh + var(--safe-t)); }
 #title .logo { margin-bottom: 1.6em; }
 #title h1 { margin: 0; font-family: var(--mincho); font-weight: 800; font-size: clamp(40px, 8.5vw, 96px); line-height: 1.05; color: #fff;
   letter-spacing: 0.08em; text-shadow: 0 0 18px rgba(127, 210, 255, 0.55), 0 3px 0 rgba(120, 20, 20, 0.6); }
@@ -98,8 +98,8 @@ html:not([data-device="touch"]) .touch-only { display: none; }
 #fieldui .boss-bar { height: calc(var(--u) * 5); margin-top: calc(var(--u) * 2); background: rgba(0, 0, 0, 0.45); border-radius: 3px; overflow: hidden; box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.2); }
 #fieldui .boss-bar i { display: block; height: 100%; width: 100%; background: linear-gradient(90deg, #ff9a6a, #fff2c8); }
 #fieldui .boss-bar i.spell { background: linear-gradient(90deg, #ff4a6a, #ffd0e0); }
-#fieldui .spell { position: absolute; right: calc(var(--u) * 8); top: calc(var(--u) * 34); text-align: right; font-family: var(--mincho); text-shadow: 0 1px 2px #000, 0 0 8px #000; }
-#fieldui .spell-name { font-weight: 800; font-size: 1.15em; color: #fff; padding: 0.15em 0.6em; background: linear-gradient(270deg, rgba(160, 30, 60, 0.75), rgba(160, 30, 60, 0)); }
+#fieldui .spell { position: absolute; right: calc(var(--u) * 6); top: calc(var(--u) * 30); max-width: 86%; text-align: right; font-family: var(--mincho); text-shadow: 0 1px 2px #000, 0 0 8px #000; }
+#fieldui .spell-name { font-weight: 800; font-size: 0.95em; color: #fff; padding: 0.12em 0.5em 0.12em 2.2em; background: linear-gradient(270deg, rgba(150, 30, 70, 0.62), rgba(150, 30, 70, 0)); }
 #fieldui .spell-bonus { font-size: 0.85em; color: var(--ink-dim); font-family: var(--font); margin-top: 0.2em; }
 #fieldui .center-msg { position: absolute; left: 0; right: 0; top: 34%; text-align: center; font-family: var(--mincho); font-weight: 800; font-size: 2.2em;
   letter-spacing: 0.2em; color: #fff; text-shadow: 0 0 14px rgba(127, 210, 255, 0.8), 0 2px 2px #000; }
@@ -138,3 +138,12 @@ html:not([data-device="touch"]) .touch-only { display: none; }
   #title .menu { gap: 0.3em; }
   button { padding: 0.4em 1.4em; }
 }
+
+/* 縦長（スマホ縦持ち）のタイトル：いなほを上に見せ、題とメニューは下にまとめる */
+[data-layout="tall"] .screen#title { justify-content: flex-end; padding-bottom: calc(9vh + var(--safe-b)); padding-left: calc(6vw + var(--safe-l)); }
+[data-layout="tall"] #title .logo { margin-bottom: 1em; }
+[data-layout="tall"] #title h1 { font-size: clamp(36px, 12vw, 64px); }
+[data-layout="tall"] #title .menu button { min-width: 0; width: min(78vw, 22em); padding: 0.5em 1.4em; }
+
+#fieldui .center-msg.credit { font-size: 1.5em; letter-spacing: 0.12em; top: 30%; padding: 0 0.6em; }
+#fieldui .sub-msg.credit { font-size: 1.05em; top: calc(30% + 3em); padding: 0 1em; line-height: 1.5; }

@@ -69,7 +69,9 @@ export class Boss extends Enemy {
     const G = this.G;
     this.showBar = true;
     const phases = this.def.phases;
-    for (let i = 0; i < phases.length; i++) {
+    const from = !this.def.midboss && G.devPhase != null ? Math.min(G.devPhase, phases.length - 1) : 0;
+    if (!this.def.midboss) G.devPhase = null;
+    for (let i = from; i < phases.length; i++) {
       if (!this.alive) return;
       yield* this.runPhase(phases[i], i);
     }
@@ -94,6 +96,7 @@ export class Boss extends Enemy {
     this.phaseActive = false;
     this.hittable = false;
     this.hp = this.maxHp = p.hp;
+    this.timeLeft = p.time;
     this.token = { alive: true };
     const player = G.player;
     if (p.spell) {

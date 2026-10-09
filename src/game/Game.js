@@ -14,6 +14,10 @@ import { PlayerShots, SHOT } from './PlayerShots.js';
 import { Items, ITEM } from './Items.js';
 import { Particles } from './Particles.js';
 import { Tasks } from './Tasks.js';
+import { Lasers } from './Lasers.js';
+import { Portraits } from './Portraits.js';
+import { makeBehaviors } from './danmaku.js';
+import { TitleScene } from './TitleScene.js';
 import { Player } from './Player.js';
 import { Enemy, KIND } from './Enemies.js';
 import { Boss } from './Boss.js';
@@ -76,8 +80,11 @@ export class Game {
     this.shots = new PlayerShots();
     this.items = new Items();
     this.fx = new Particles();
+    this.lasers = new Lasers();
     this.tasks = new Tasks();
     this.B = makeDanmaku(this);
+    this.BEH = makeBehaviors(this);
+    this.portraits = new Portraits(this);
     this.player = new Player(this, makePlayerModel());
     this.field.scene.add(this.player.model.root);
     this.enemies = [];
@@ -85,6 +92,8 @@ export class Game {
     this.S = this.makeStageAPI();
     this.inp = { mx: 0, my: 0, dx: 0, dy: 0, shot: false, focus: false, bomb: false };
     this.flashV = 0;
+    this.fadeV = 0;          // 暗転（0〜1）
+    this.fadeTarget = 0;
     this.difficulty = 'normal';
     this.D = 1;
     this.stageNo = 0;
@@ -96,6 +105,7 @@ export class Game {
   async init() {
     await Promise.all([loadFonts(), this.world.preload()]);
     this.world.setStageNow('title') || this.world.setStageNow('test');
+    this.titleScene = new TitleScene(this.world);
     this.setState('title');
   }
 
@@ -126,22 +136,32 @@ export class Game {
   }
 
   enter_paused() { this.audio.sfx('pause'); }
-  enter_title() { this.hud.center(''); }
+  enter_title() {
+    this.hud.center('');
+    this.titleScene?.setVisible(true);
+    this.player.model.root.visible = false;
+    this.fadeV = 0; this.fadeTarget = 0;
+  }
+  enter_play(prev) { if (prev === 'title' || prev === 'result') this.titleScene?.setVisible(false); }
 
   /** はじめから（難易度・ステージ）。 */
-  start(difficulty = this.difficulty, stage = 1) {
+  start(difficulty = this.difficulty, stage = 1, o = {}) {
+    this.startAt = o.at || null;     // 開発用：'mid' / 'road2' / 'boss' から始める
+    this.devPhase = o.phase ?? null; // 開発用：ボスのフェーズの番号から始める
     this.difficulty = DIFFS.includes(difficulty) ? difficulty : 'normal';
     this.D = DIFFS.indexOf(this.difficulty);
     this.resetScore();
     this.player.reset();
     this.touch.resetToggles?.();
-    this.practice = stage > 1;
+    this.practice = o.practice ?? stage > 1;
     this.beginStage(stage);
     this.setState('play');
   }
 
   /** ステージを始める（台本を走らせる）。 */
   beginStage(n) {
+    this.marks = [];
+    this.fadeTarget = 0;
     this.clearField();
     this.stageNo = n;
     this.world.setStageNow('stage' + n) || this.world.setStageNow('test');
@@ -157,6 +177,7 @@ export class Game {
     this.enemies = [];
     this.boss = null;
     this.bullets.clear();
+    this.lasers.clear();
     this.shots.clear();
     this.items.clear();
     this.fx.clear();
@@ -164,6 +185,7 @@ export class Game {
     this.hud.center('');
     this.hud.dialogue(null);
     this.dialogueOpen = false;
+    this.portraits.hideAll();
     this.player.x = 0;
     this.player.y = -HALF_H + 60;
   }
@@ -181,6 +203,7 @@ export class Game {
   update_title(dt) {
     if (this.input.menu.back && this.screens.back()) this.audio.sfx('ui_back');
     this.world.update(dt, { speed: 0.6 });
+    this.titleScene?.update(dt);
   }
 
   update_paused() {
@@ -272,6 +295,9 @@ export class Game {
       for (let k = 0; k < Math.min(3, r.grazes); k++) this.fx.graze((p.x + r.gx) / 2, (p.y + r.gy) / 2);
     }
     if (r.hit >= 0) p.hit();
+    const lr = this.lasers.update(p);
+    if (lr.grazes) { this.graze += lr.grazes; this.addScore(lr.grazes * 200); this.audio.sfx('graze', { minGap: 0.04 }); }
+    if (lr.hit) p.hit();
     if (p.vulnerable) {
       for (const e of this.enemies) {
         if (!e.alive || e.z < -5) continue;
@@ -281,9 +307,11 @@ export class Game {
     }
     this.items.update(p, (type, auto, y) => this.pickItem(type, auto, y));
     this.fx.update();
+    this.portraits.update(TICK);
     if (this.frame % 30 === 0) this.enemies = this.enemies.filter((e) => e.alive);
     this.hud.tickPopups();
     if (this.flashV > 0) this.flashV = Math.max(0, this.flashV - 0.04);
+    if (this.fadeV !== this.fadeTarget) this.fadeV += Math.sign(this.fadeTarget - this.fadeV) * Math.min(Math.abs(this.fadeTarget - this.fadeV), 1 / 40);
   }
 
   canShoot() { return !this.dialogueOpen && this.grace <= 0; }
@@ -308,6 +336,7 @@ export class Game {
 
   /** 弾を全部消す。toItems：星のアイテムに変える（ボム・フェーズの終わり）。 */
   cancelBullets(toItems = true, collect = false) {
+    this.lasers.cancel();
     this.bullets.cancelAll((x, y) => {
       this.fx.vanish(x, y, 'white');
       if (toItems && this.items.top < 900) this.items.spawn(x, y, ITEM.star, { vx: 0, vy: 1.2, home: collect ? 2 : 0 });
@@ -353,6 +382,7 @@ export class Game {
 
   onBomb() {
     this.audio.sfx('bomb');
+    this.portraits.cutIn('l', 'inaho');
     this.world.shake(8);
     this.flash(0.5, '#bfe6ff');
     this.cancelBullets(true);
@@ -370,6 +400,7 @@ export class Game {
   declareSpell(boss, p) {
     this.audio.sfx('spell');
     this.flash(0.35, '#ffffff');
+    if (boss.def.portrait) this.portraits.cutIn('r', boss.def.portrait);
     const rec = (this.save.data.spells[p.name] ||= [0, 0]);
     rec[1]++;
     this.save.save();
@@ -423,6 +454,7 @@ export class Game {
       enemy: (kind, x, y, script) => G.spawnEnemy(kind, x, y, script),
       /** ボス戦（登場 → 会話 → フェーズ → 撃破 → 会話）。 */
       *boss(def, { before, after } = {}) {
+        (G.marks ||= []).push([def.midboss ? 'midboss' : 'boss', G.frame]);
         const b = G.spawnBoss(def);
         yield* b.enter(0, 120);
         if (before) yield* G.S.dialogue(before);
@@ -436,33 +468,60 @@ export class Game {
         }
         G.boss = null;
       },
-      /** 会話。lines = [{ who: 'inaho' | 'boss', key: 'dlg.xxx' }]。決定で次へ、早送りで飛ばす。 */
+      /** 会話。lines = [{ who: 'inaho' | 'boss', key: 'dlg.xxx', face: { eyes, mouth, brows } }]。決定で次へ、早送りで飛ばす。 */
       *dialogue(lines) {
         G.dialogueOpen = true;
+        const bdef = G.boss?.def;
+        G.portraits.open(bdef?.portrait);
         for (const L of lines) {
-          G.hud.dialogue({ speaker: L.speaker, text: t(L.key), side: L.side || 'l' });
+          const side = L.who === 'inaho' ? 'l' : 'r';
+          const speaker = L.who === 'inaho' ? 'name.inaho' : bdef?.nameKey;
+          const text = t(L.key);
+          G.hud.dialogue({ speaker, text, side });
+          G.portraits.speak(side, L.face, Math.min(110, 12 + text.length * 3));
+          if (L.who !== 'inaho' && L.pose && G.boss) G.boss.pose = L.pose;
           yield 10;
           while (!G.inp.confirm && !G.inp.skip) yield 1;
           G.audio.sfx('dlg', { minGap: 0.05 });
           yield G.inp.skip ? 2 : 1;
         }
+        if (G.boss) G.boss.pose = null;
+        G.portraits.close();
         G.hud.dialogue(null);
         G.dialogueOpen = false;
         G.grace = 10;
       },
       music: (id) => G.audio.music(id),
+      /** 台本の区切り。開発用に途中から始めるとき（G.startAt）は、そこまでの区切りを飛ばす。 */
+      section(name) {
+        if (G.startAt && G.startAt !== name) return false;
+        G.startAt = null;
+        (G.marks ||= []).push([name, G.frame]);
+        return true;
+      },
+      /** 開発用の目印（いつ何が起きたか。__dev.game.marks で見る）。 */
+      mark(name) { (G.marks ||= []).push([name, G.frame]); },
+      /** 波を並べて走らせる（待たない）。 */
+      par(gen) { return G.tasks.add(gen, G.stageToken, 'par'); },
+      /** 背景への合図（'boss' など）。 */
+      world: (name, arg) => G.world.event(name, arg),
+      get BEH() { return G.BEH; },
+      get rng() { return G.rng; },
       title(n) {
         G.hud.center(t(`stage${n}.title`), t(`stage${n}.sub`));
         G.tasks.add((function* () { yield 200; G.hud.center(''); })(), G.stageToken);
       },
-      *clear() {
+      *clear({ final = false } = {}) {
         yield 60;
         G.items.collectAll();
         const bonus = 1000000 * G.stageNo + Math.floor(G.player.power * 100) * 1000 + G.graze * 100;
         G.addScore(bonus);
         G.hud.center(t('msg.stageClear'), t('msg.clearBonus', { n: Math.floor(bonus * DIFF_SCORE[G.D]).toLocaleString('en-US') }));
         G.audio.sfx('clear');
-        yield 240;
+        yield 200;
+        if (final && !G.practice) { G.hud.center(''); return; }
+        G.fadeTarget = 1;
+        yield 45;
         G.hud.center('');
         G.onStageClear();
       },
@@ -511,6 +570,10 @@ export class Game {
   }
 
   enter_result() {
+    this.clearField();
+    this.world.setStageNow('title');
+    this.titleScene?.setVisible(true);
+    this.fadeV = 0; this.fadeTarget = 0;
     const m = this.screens.modals.result;
     const cleared = this.lastCleared;
     m.querySelector('.result-title').textContent = cleared ? t('result.allClear') : t('result.title');
@@ -554,11 +617,12 @@ export class Game {
     for (const e of this.enemies) e.sync(dt);
     const F = this.field;
     this.bullets.render(F.bulletBatch);
+    this.lasers.render(F.laserBatch);
     this.shots.render(F.shotBatch);
     this.items.render(F.itemBatch);
     this.fx.render(F.fxAdd, F.fxAlpha);
     this.renderPlayerFx();
-    this.renderer.setFx({ time: this.time, flash: this.flashV });
+    this.renderer.setFx({ time: this.time, flash: this.flashV, fade: this.fadeV });
     if (this.state !== 'title') this.hud.update(this);
     this.renderer.render(dt);
   }
@@ -568,7 +632,7 @@ export class Game {
     const F = this.field, p = this.player;
     F.optBatch.begin();
     F.topBatch.begin();
-    if (p.alive && this.state !== 'title') {
+    if (p.alive && this.state !== 'title' && this.state !== 'result') {
       const fl = 1 + Math.sin(this.time * 18) * 0.08;
       for (const o of p.opts) F.optBatch.push(p.x + o.x, p.y + o.y, 0, 14 * fl, 17 * fl, ICON.option, 1, 1, 1, 0.95);
       if (p.focusT > 0) {

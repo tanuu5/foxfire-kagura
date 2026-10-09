@@ -93,7 +93,7 @@ try {
     input: input.devInput(),
     goto: (name, o = {}) => {
       if (name === 'title') game.toTitle();
-      else if (name === 'play') game.start(o.difficulty || 'normal', o.stage || 1);
+      else if (name === 'play') game.start(o.difficulty || 'normal', o.stage || 1, o);
       else if (name === 'paused') { if (game.state !== 'play') game.start(); game.setState('paused'); }
       return game.state;
     },

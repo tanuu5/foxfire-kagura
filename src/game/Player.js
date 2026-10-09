@@ -45,7 +45,7 @@ export class Player {
   }
 
   get alive() { return this.state === 'play' || this.state === 'respawn'; }
-  get vulnerable() { return this.state === 'play' && this.invuln <= 0; }
+  get vulnerable() { return this.state === 'play' && this.invuln <= 0 && !this.G.god; }
   get powerLevel() { return Math.max(1, Math.min(4, Math.floor(this.power + 1e-6))); }
   get r() { return PLAYER.hitR; }
   get grazeR() { return PLAYER.grazeR; }
@@ -219,7 +219,7 @@ export class Player {
   syncModel(dt) {
     const m = this.model;
     if (!m) return;
-    const visible = this.state !== 'dead' && this.state !== 'dying';
+    const visible = this.state !== 'dead' && this.state !== 'dying' && this.G.state !== 'title' && this.G.state !== 'result';
     const blink = this.invuln > 0 && this.state !== 'dying' && Math.floor(this.invuln / 4) % 2 === 0;
     m.root.visible = visible;
     m.root.position.set(this.x, this.y, 0);

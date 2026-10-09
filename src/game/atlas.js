@@ -193,7 +193,7 @@ shape('flame', { size: [20, 26], r: 5, dir: true, draw: (L, c) => {
   if (L === 'body') fill(c, b, 0.95, 6);
   if (L === 'core') fill(c, P.ellipse(0.3, 0.36, 0, 0.3), 1, 8);
   if (L === 'rim') stroke(c, b, 0.05, 0.4);
-  if (L === 'glow') radial(c, 0.4, 1, 0.9, 0, 0.15);
+  if (L === 'glow') radial(c, 0.4, 1, 0.55, 0, 0.15);
 }, layer: 1 });
 // 三日月
 shape('crescent', { size: [22, 22], r: 5, dir: true, draw: (L, c) => {
@@ -294,6 +294,13 @@ shape('p_shard', { size: [10, 14], draw: (L, c) => {
   if (L === 'body') fill(c, b);
   if (L === 'core') fill(c, P.poly([[0, -0.5], [0.2, 0.1], [-0.2, 0.2]]), 0.8, 2);
   if (L === 'glow') radial(c, 0.2, 1, 0.5);
+} });
+// レーザー：縦に伸ばして使う（上下は一様、左右に芯・本体・光）
+shape('laser', { size: [16, 64], draw: (L, c) => {
+  const band = (w, v) => { c.save(); c.scale(1, 1); const g = c.createLinearGradient(-1, 0, 1, 0); g.addColorStop(0, 'rgba(255,255,255,0)'); g.addColorStop(0.5 - w / 2, `rgba(255,255,255,${v})`); g.addColorStop(0.5, `rgba(255,255,255,${v})`); g.addColorStop(0.5 + w / 2, `rgba(255,255,255,${v})`); g.addColorStop(1, 'rgba(255,255,255,0)'); c.fillStyle = g; c.fillRect(-1, -1, 2, 2); c.restore(); };
+  if (L === 'body') band(0.5, 1);
+  if (L === 'core') band(0.18, 1);
+  if (L === 'glow') band(0.9, 0.7);
 } });
 // 自機の当たり判定の印（白い丸と赤い縁）
 shape('hitbox', { size: [12, 12], draw: (L, c) => {
