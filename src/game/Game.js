@@ -18,6 +18,7 @@ import { Lasers } from './Lasers.js';
 import { Portraits } from './Portraits.js';
 import { makeBehaviors } from './danmaku.js';
 import { TitleScene } from './TitleScene.js';
+import { Debris } from './Debris.js';
 import { Player } from './Player.js';
 import { Enemy, KIND } from './Enemies.js';
 import { Boss } from './Boss.js';
@@ -84,6 +85,7 @@ export class Game {
     this.items = new Items();
     this.fx = new Particles();
     this.lasers = new Lasers();
+    this.debris = new Debris(this.field.scene);
     this.tasks = new Tasks();
     this.B = makeDanmaku(this);
     this.BEH = makeBehaviors(this);
@@ -188,6 +190,7 @@ export class Game {
     this.shots.clear();
     this.items.clear();
     this.fx.clear();
+    this.debris.clear();
     this.hud.clearPopups();
     this.hud.center('');
     this.hud.dialogue(null);
@@ -317,6 +320,7 @@ export class Game {
     }
     this.items.update(p, (type, auto, y) => this.pickItem(type, auto, y));
     this.fx.update();
+    this.debris.update();
     this.portraits.update(TICK);
     if (this.frame % 30 === 0) this.enemies = this.enemies.filter((e) => e.alive);
     this.hud.tickPopups();
@@ -659,6 +663,7 @@ export class Game {
     this.shots.render(F.shotBatch);
     this.items.render(F.itemBatch);
     this.fx.render(F.fxAdd, F.fxAlpha);
+    this.debris.render();
     this.renderPlayerFx();
     this.renderer.setFx({ time: this.time, flash: this.flashV, fade: this.fadeV });
     if (this.state !== 'title') this.hud.update(this);

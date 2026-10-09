@@ -133,6 +133,7 @@ export class Boss extends Enemy {
     G.cancelBullets(true, true);
     G.audio.sfx(result === 'defeated' ? 'phase_end' : 'phase_timeout');
     G.fx.burst(this.x, this.y, this.def.color || 'white', 1);
+    if (result === 'defeated') G.debris?.burst(this.x, this.y, this.def.color || 'white', 24, true);
     if (result === 'defeated' || p.survival) {
       const last = i === this.def.phases.length - 1;
       if (!last) {
@@ -169,6 +170,7 @@ export class Boss extends Enemy {
       yield 8;
     }
     G.fx.burst(this.x, this.y, 'white', 2);
+    G.debris?.burst(this.x, this.y, this.def.color || 'gold', 60, true);
     for (let k = 0; k < 24; k++) {
       const a = (k / 24) * Math.PI * 2;
       G.fx.emit({ x: this.x, y: this.y, vx: Math.cos(a) * 7, vy: Math.sin(a) * 7, cell: SHAPE.p_ring, color: this.def.color || 'gold', life: 40, size: 20, size1: 4, drag: 0.95 });

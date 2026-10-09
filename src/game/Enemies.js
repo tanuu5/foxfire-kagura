@@ -65,6 +65,7 @@ export class Enemy {
     const at = (n, type) => { for (let k = 0; k < (n || 0); k++) G.items.spawn(this.x + (Math.random() - 0.5) * 24, this.y + (Math.random() - 0.5) * 16, type); };
     at(d.power, ITEM.power); at(d.bigpower, ITEM.bigpower); at(d.point, ITEM.point); at(d.bomb, ITEM.bomb); at(d.life, ITEM.life);
     G.fx.burst(this.x, this.y, this.color, this.def.big ? 1 : 0);
+    G.debris?.burst(this.x, this.y, this.color, this.def.big ? 16 : 7, !!this.def.big);
     G.audio.sfx(this.def.big ? 'explode_m' : 'explode_s');
     this.def.onDeath?.(this, G);
     this.removeModel();

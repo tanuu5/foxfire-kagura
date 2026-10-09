@@ -108,7 +108,7 @@ export class Player {
     if (inp.shot && this.alive && G.canShoot()) this.fire();
 
     // ボム
-    if (inp.bomb && this.state === 'play' && this.bombs > 0 && this.bombT <= 0) this.useBomb(false);
+    if (inp.bomb && this.state === 'play' && this.bombs > 0 && this.bombT <= 0 && !G.dialogueOpen) this.useBomb(false);
     if (this.bombT > 0) this.bombTick();
   }
 
