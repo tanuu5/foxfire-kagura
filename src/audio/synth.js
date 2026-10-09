@@ -2,6 +2,8 @@
 // どの関数も (ctx, out, t, p) の形：out はミキサーの系統（{ dry, wet }）、t は鳴らす時刻（ctx.currentTime 基準）。
 // p は { f（Hz）or m（MIDI）, dur, vel（0〜1）, pan（-1〜1）, rev（リバーブへの送り 0〜1） } など。
 // 値はすべて fin() で確かめてから使う（NaN が AudioParam に入ると、その音はもう鳴らない）。
+// 和楽器（琴・三味線・笛・太鼓など）は wa.js にあり、INSTRUMENTS の後ろで混ぜる。
+import { waInstruments } from './wa.js';
 
 const fin = (x, d) => (typeof x === 'number' && Number.isFinite(x) ? x : d);
 export const mtof = (m) => 440 * Math.pow(2, (m - 69) / 12);
@@ -154,6 +156,8 @@ export const INSTRUMENTS = {
     perc(g.gain, t, 0.22 * vel, 0.001, open ? 0.3 : 0.05);
   },
 };
+// 和楽器（wa.js）：koto shamisen fue shakuhachi kokyu sho koe sub taiko shime tsuzumi ka hyoshigi kane chiki suzu
+Object.assign(INSTRUMENTS, waInstruments({ fin, FLOOR, route, perc, adsr, osc, noise, filter, hz }));
 
 // ---------------------------------------------------------------- 効果音（audio.sfx(name) で鳴らす）
 // 作品に合わせて足す・作り替える。名前はゲームの出来事に合わせる（coin, hit, gameover …）。
@@ -181,13 +185,6 @@ export const SFX = {
       perc(g.gain, t + dt, 0.1, 0.002, dt ? 0.26 : 0.08);
     }
   },
-  hit(ctx, out, t, p = {}) {
-    const o = osc(ctx, 'sawtooth', 220, t, t + 0.25);
-    o.frequency.exponentialRampToValueAtTime(60, t + 0.2);
-    const g = route(ctx, o.connect(filter(ctx, 'lowpass', 1400)), out, p);
-    perc(g.gain, t, 0.3, 0.002, 0.22);
-    SFX.land(ctx, out, t, { vel: 0.8 });
-  },
   explode(ctx, out, t, p = {}) {
     const dur = fin(p.dur, 1.1);
     const n = noise(ctx, t, t + dur);
@@ -206,46 +203,70 @@ export const SFX = {
   shot(ctx, out, t, p = {}) {
     const n = noise(ctx, t, t + 0.05);
     const g = route(ctx, n.connect(filter(ctx, 'bandpass', 5200, 1.2)), out, p);
-    perc(g.gain, t, 0.045, 0.001, 0.035);
+    perc(g.gain, t, 0.09, 0.001, 0.035);
     const o = osc(ctx, 'triangle', 1900, t, t + 0.05);
     o.frequency.exponentialRampToValueAtTime(900, t + 0.04);
     const g2 = route(ctx, o, out, p);
-    perc(g2.gain, t, 0.02, 0.001, 0.04);
+    perc(g2.gain, t, 0.04, 0.001, 0.04);
   },
   /** 敵の弾の発射「たん」。 */
   tan(ctx, out, t, p = {}) {
     const o = osc(ctx, 'square', 880, t, t + 0.1);
     o.frequency.exponentialRampToValueAtTime(330, t + 0.06);
     const g = route(ctx, o.connect(filter(ctx, 'lowpass', 2600)), out, p);
-    perc(g.gain, t, 0.055, 0.001, 0.07);
+    perc(g.gain, t, 0.11, 0.001, 0.07);
     const n = noise(ctx, t, t + 0.06);
     const g2 = route(ctx, n.connect(filter(ctx, 'highpass', 3000)), out, p);
-    perc(g2.gain, t, 0.04, 0.001, 0.04);
+    perc(g2.gain, t, 0.08, 0.001, 0.04);
   },
   /** きらっ（細い弾・レーザーの発射）。 */
   kira(ctx, out, t, p = {}) {
     for (const [dt, f] of [[0, 2637], [0.03, 3520]]) {
       const o = osc(ctx, 'sine', f, t + dt, t + dt + 0.2);
       const g = route(ctx, o, out, { rev: 0.25, ...p });
-      perc(g.gain, t + dt, 0.05, 0.001, 0.16);
+      perc(g.gain, t + dt, 0.1, 0.001, 0.16);
     }
+  },
+  /** 太鼓「どん」（腹鼓のスペル）。 */
+  drum(ctx, out, t, p = {}) {
+    const o = osc(ctx, 'sine', 120, t, t + 0.4);
+    o.frequency.exponentialRampToValueAtTime(55, t + 0.18);
+    const g = route(ctx, o, out, { rev: 0.25, ...p });
+    perc(g.gain, t, 0.55, 0.002, 0.32);
+    const n = noise(ctx, t, t + 0.08);
+    const g2 = route(ctx, n.connect(filter(ctx, 'lowpass', 900)), out, p);
+    perc(g2.gain, t, 0.18, 0.001, 0.06);
+  },
+  drum_big(ctx, out, t, p = {}) {
+    SFX.drum(ctx, out, t, p);
+    const o = osc(ctx, 'sine', 90, t, t + 0.7);
+    o.frequency.exponentialRampToValueAtTime(40, t + 0.4);
+    const g = route(ctx, o, out, { rev: 0.4, ...p });
+    perc(g.gain, t, 0.6, 0.003, 0.6);
+  },
+  /** レーザー「びーっ」。 */
+  laser(ctx, out, t, p = {}) {
+    const o = osc(ctx, 'sawtooth', 220, t, t + 0.7);
+    o.frequency.exponentialRampToValueAtTime(880, t + 0.5);
+    const g = route(ctx, o.connect(filter(ctx, 'bandpass', 1400, 2)), out, { rev: 0.3, ...p });
+    adsr(g.gain, t, 0.16, 0.05, 0.35, 0.25);
   },
   /** 雑魚に当たった。 */
   hit(ctx, out, t, p = {}) {
     const n = noise(ctx, t, t + 0.04);
     const g = route(ctx, n.connect(filter(ctx, 'bandpass', 2400, 2)), out, p);
-    perc(g.gain, t, 0.07, 0.001, 0.03);
+    perc(g.gain, t, 0.24, 0.001, 0.03);
   },
   /** ボスに当たった。 */
   damage(ctx, out, t, p = {}) {
     const n = noise(ctx, t, t + 0.06);
     const g = route(ctx, n.connect(filter(ctx, 'bandpass', 1500, 1.5)), out, p);
-    perc(g.gain, t, 0.06, 0.001, 0.05);
+    perc(g.gain, t, 0.4, 0.001, 0.05);
   },
   damage_low(ctx, out, t, p = {}) {
     const n = noise(ctx, t, t + 0.06);
     const g = route(ctx, n.connect(filter(ctx, 'bandpass', 3400, 2)), out, p);
-    perc(g.gain, t, 0.08, 0.001, 0.05);
+    perc(g.gain, t, 0.3, 0.001, 0.05);
   },
   /** 雑魚がやられた「ぽん」。 */
   explode_s(ctx, out, t, p = {}) {
@@ -254,11 +275,11 @@ export const SFX = {
     lp.frequency.setValueAtTime(2400, t);
     lp.frequency.exponentialRampToValueAtTime(200, t + 0.25);
     const g = route(ctx, n.connect(lp), out, { rev: 0.15, ...p });
-    perc(g.gain, t, 0.22, 0.002, 0.25);
+    perc(g.gain, t, 0.33, 0.002, 0.25);
     const o = osc(ctx, 'sine', 320, t, t + 0.2);
     o.frequency.exponentialRampToValueAtTime(80, t + 0.15);
     const g2 = route(ctx, o, out, p);
-    perc(g2.gain, t, 0.25, 0.002, 0.15);
+    perc(g2.gain, t, 0.36, 0.002, 0.15);
   },
   explode_m(ctx, out, t, p = {}) { SFX.explode(ctx, out, t, { dur: 0.7, ...p }); },
   /** 被弾「ぴちゅーん」。 */
@@ -270,23 +291,23 @@ export const SFX = {
     const lg = ctx.createGain(); lg.gain.value = 60;
     lfo.connect(lg).connect(o.frequency);
     const g = route(ctx, o.connect(filter(ctx, 'lowpass', 4000)), out, { rev: 0.3, ...p });
-    perc(g.gain, t, 0.16, 0.002, 0.55);
+    perc(g.gain, t, 0.3, 0.002, 0.55);
     const n = noise(ctx, t, t + 0.5);
     const g2 = route(ctx, n.connect(filter(ctx, 'lowpass', 1800)), out, p);
-    perc(g2.gain, t, 0.3, 0.002, 0.4);
+    perc(g2.gain, t, 0.5, 0.002, 0.4);
   },
   /** かすり「しゅっ」。 */
   graze(ctx, out, t, p = {}) {
     const n = noise(ctx, t, t + 0.05);
     const g = route(ctx, n.connect(filter(ctx, 'highpass', 6000)), out, p);
-    perc(g.gain, t, 0.06, 0.001, 0.04);
+    perc(g.gain, t, 0.13, 0.001, 0.04);
   },
   /** アイテムを拾った。 */
   item(ctx, out, t, p = {}) {
     const o = osc(ctx, 'sine', 1568, t, t + 0.08);
     o.frequency.exponentialRampToValueAtTime(2093, t + 0.04);
     const g = route(ctx, o, out, p);
-    perc(g.gain, t, 0.04, 0.001, 0.06);
+    perc(g.gain, t, 0.1, 0.001, 0.06);
   },
   extend(ctx, out, t, p = {}) {
     [784, 988, 1175, 1568, 1976].forEach((f, i) => INSTRUMENTS.bell(ctx, out, t + i * 0.07, { f, vel: 0.7, dur: 0.9, ...p }));
@@ -338,7 +359,7 @@ export const SFX = {
     const bp = filter(ctx, 'bandpass', 600, 1.5);
     bp.frequency.exponentialRampToValueAtTime(4000, t + 0.6);
     const g = route(ctx, n.connect(bp), out, { rev: 0.4, ...p });
-    perc(g.gain, t, 0.3, 0.05, 0.7);
+    perc(g.gain, t, 0.6, 0.05, 0.7);
   },
   boss_down(ctx, out, t, p = {}) {
     const o = osc(ctx, 'sawtooth', 200, t, t + 1.2);

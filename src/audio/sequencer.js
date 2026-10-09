@@ -1,7 +1,7 @@
 // 小さなステップシーケンサー（先読みで予約する方式。メインスレッドが少し詰まっても音はずれない）。
 //
 // 曲はデータで書く（songs.js）。1 小節 = 16 ステップ（16 分音符）。小節の文字列は空白区切りでステップを並べる：
-//   'C5'  音（C4 = 60）   'C4+E4+G4' 和音   'n62' MIDI 番号   '-' 前の音をのばす   '.' 休み
+//   'C5'  音（C4 = 60）   'C4+E4+G4' 和音   'n62' MIDI 番号   '-' 前の音をのばす（小節の頭なら前の小節の最後の音）   '.' 休み
 //   末尾に '!' で強く、'?' で弱く
 // ドラムは { kick: 'x...x...x...x...', snare: '....x.......x...', hat: 'x.x.x.x.x.x.x.x.' }
 //   x = ふつう、X = 強く、o = 弱く
@@ -22,10 +22,12 @@ export function compile(song) {
   const warn = [];
   const out = Array.from({ length: bars }, () => []);
   for (const [name, tr] of Object.entries(song.tracks)) {
+    let cur = null; // のばしている音（小節をまたいでも '-' でのばせるように、列ごとに持つ）
     for (let b = 0; b < bars; b++) {
       const bar = tr.bars[b % tr.bars.length];
-      if (!bar) continue;
+      if (!bar) { cur = null; continue; }
       if (typeof bar === 'object') {
+        cur = null;
         // ドラム
         for (const [inst, pat] of Object.entries(bar)) {
           [...pat.replace(/\s/g, '')].forEach((ch, i) => {
@@ -38,7 +40,6 @@ export function compile(song) {
       }
       const toks = bar.trim().split(/\s+/);
       if (toks.length !== steps) warn.push(`${name} 小節 ${b + 1}: ${toks.length} 個（${steps} 個のはず）`);
-      let cur = null;
       toks.forEach((tk, i) => {
         if (tk === '-') { if (cur) cur.forEach((e) => e.len++); return; }
         cur = null;

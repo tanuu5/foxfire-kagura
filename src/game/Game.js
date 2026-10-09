@@ -33,7 +33,7 @@ export const STATES = {
   title: { title: true, input: 'menu', music: 'title' },
   play: { hud: true, touch: true, input: 'play' },
   paused: { hud: true, input: 'menu', modal: 'pause', duck: true },
-  gameover: { hud: true, input: 'menu', modal: 'gameover', duck: true },
+  gameover: { hud: true, input: 'menu', modal: 'gameover' },
   result: { input: 'menu', modal: 'result' },
   preview: { hud: true, input: 'menu' },   // 開発用：背景だけを動かして見る（__dev.preview）
 };
@@ -590,9 +590,14 @@ export class Game {
     p.state = 'dead';
     p.timer = 1;
     this.setState('play');
+    if (this.musicBefore) { this.audio.stopMusic(0.2); this.audio.music(this.musicBefore); }
   }
 
   enter_gameover() {
+    // 短い曲を流す（コンティニューしたら、それまでの曲に戻す）
+    this.musicBefore = this.audio.songId || this.musicBefore;
+    this.audio.stopMusic(0.3);
+    this.audio.music('gameover', { fadeIn: 0.05 });
     const el = this.screens.modals.gameover.querySelector('.gameover-note');
     el.textContent = this.practice ? '' : t('gameover.note', { n: this.continues });
     this.screens.modals.gameover.querySelector('[data-act="continueGame"]').classList.toggle('hidden', !!this.practice);
