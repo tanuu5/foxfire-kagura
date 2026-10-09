@@ -120,7 +120,7 @@ export class Renderer {
   constructor(container, { quality = 'auto' } = {}) {
     const r = new THREE.WebGLRenderer({ antialias: false, powerPreference: 'high-performance', stencil: false });
     r.outputColorSpace = THREE.SRGBColorSpace;
-    r.toneMapping = THREE.ACESFilmicToneMapping;
+    r.toneMapping = THREE.NeutralToneMapping; // 明るい色の色相と彩度を保つ（弾・アニメ調のキャラクター向け）
     r.toneMappingExposure = 1;
     r.shadowMap.enabled = true;
     r.shadowMap.type = THREE.PCFShadowMap;

@@ -20,7 +20,8 @@ import { Boss } from './Boss.js';
 import { makeDanmaku } from './danmaku.js';
 import { SHAPE, ICON } from './atlas.js';
 import { STAGES } from './stages/index.js';
-import { makePlaceholderGirl, makePlaceholderEnemy } from '../chara/placeholders.js';
+import { makePlaceholderEnemy } from '../chara/placeholders.js';
+import { makePlayerModel, makeBossModel } from '../chara/actors.js';
 
 // 状態の表（雛形の約束）。title：タイトル ／ hud ／ touch ／ input：play・actions・menu ／ music ／ modal ／ duck
 export const STATES = {
@@ -66,7 +67,9 @@ export class Game {
     });
 
     // 見た目のモデル（本物ができるまでは仮のもの）
-    this.models = { make: (kind, def) => makePlaceholderEnemy(kind, { ...def, colorHex: COLOR_HEX[def.color] }) };
+    this.models = {
+      make: (kind, def) => (kind.startsWith('girl:') ? makeBossModel(kind.slice(5)) : makePlaceholderEnemy(kind, { ...def, colorHex: COLOR_HEX[def.color] })),
+    };
 
     // 仕組み
     this.bullets = new Bullets();
@@ -75,7 +78,7 @@ export class Game {
     this.fx = new Particles();
     this.tasks = new Tasks();
     this.B = makeDanmaku(this);
-    this.player = new Player(this, makePlaceholderGirl());
+    this.player = new Player(this, makePlayerModel());
     this.field.scene.add(this.player.model.root);
     this.enemies = [];
     this.boss = null;

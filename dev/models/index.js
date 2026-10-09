@@ -2,7 +2,9 @@
 // viewer.html?m=<名前> で最初に出すものを選べる（省略時は先頭）。
 export default {
   inaho: () => import('./inaho.js'),
-  bosses: () => import('./bosses.js'),
+  poko: () => import('./poko.js'),
+  suzu: () => import('./suzu.js'),
+  tsukuyo: () => import('./tsukuyo.js'),
   enemies: () => import('./enemies.js'),
   example: () => import('./example.js'),
 };

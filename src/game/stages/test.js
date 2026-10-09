@@ -3,7 +3,7 @@ import { SHAPE, TAU, DOWN } from '../danmaku.js';
 
 const testBoss = {
   nameKey: 'boss.test',
-  model: 'wisp',
+  model: 'girl:poko',
   color: 'pink',
   r: 24,
   phases: [

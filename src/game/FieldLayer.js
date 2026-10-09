@@ -15,10 +15,10 @@ export class FieldLayer {
     cam.lookAt(0, 0, 0);
 
     // キャラクターと敵の明かり（ステージの雰囲気に合わせて setMood で変える）
-    this.hemi = new THREE.HemisphereLight(0xfff3e6, 0x5a4a6a, 1.6);
-    this.key = new THREE.DirectionalLight(0xfff0dd, 2.2);
+    this.hemi = new THREE.HemisphereLight(0xfff3e6, 0x5a4a6a, 1.25);
+    this.key = new THREE.DirectionalLight(0xfff0dd, 1.7);
     this.key.position.set(-0.6, 0.9, 1.0);
-    this.rim = new THREE.DirectionalLight(0x9fc4ff, 1.4);
+    this.rim = new THREE.DirectionalLight(0x9fc4ff, 0.9);
     this.rim.position.set(0.7, 0.4, -1.0);
     scene.add(this.hemi, this.key, this.rim);
 
@@ -37,7 +37,7 @@ export class FieldLayer {
   }
 
   /** 明かりの色と強さ（ステージの時間帯に合わせる）。 */
-  setMood({ hemiSky = 0xfff3e6, hemiGround = 0x5a4a6a, hemi = 1.6, key = 0xfff0dd, keyI = 2.2, rim = 0x9fc4ff, rimI = 1.4 } = {}) {
+  setMood({ hemiSky = 0xfff3e6, hemiGround = 0x5a4a6a, hemi = 1.25, key = 0xfff0dd, keyI = 1.7, rim = 0x9fc4ff, rimI = 0.9 } = {}) {
     this.hemi.color.set(hemiSky); this.hemi.groundColor.set(hemiGround); this.hemi.intensity = hemi;
     this.key.color.set(key); this.key.intensity = keyI;
     this.rim.color.set(rim); this.rim.intensity = rimI;

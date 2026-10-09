@@ -222,7 +222,7 @@ export class Player {
     const visible = this.state !== 'dead' && this.state !== 'dying';
     const blink = this.invuln > 0 && this.state !== 'dying' && Math.floor(this.invuln / 4) % 2 === 0;
     m.root.visible = visible;
-    m.root.position.set(this.x, this.y - 4, 0);
+    m.root.position.set(this.x, this.y, 0);
     m.setBlink?.(blink);
     m.update?.(dt, { vx: this.vx, focus: this.focusT, state: this.state });
   }
