@@ -19,6 +19,7 @@ import { FaceTexture, FACE } from './face.js';
 export const BONE = { hairBack: 1, sideL: 2, sideR: 3, ahoge: 4, tail1: 5, tail2: 6, sleeveL: 7, sleeveR: 8, skirt: 9, earL: 10, earR: 11, ribbon: 12, bow: 13, sash: 14, legs: 15 };
 
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
+const _q = new THREE.Quaternion(), _d = new THREE.Vector3();
 
 // 体の寸法（m）
 const D = {
@@ -460,22 +461,27 @@ function arm(spec, s) {
   const style = O.sleeve || 'wide';
   if (style === 'wide') {
     // 袂：腕から下がる大きな平たい袋。手は前の袖口から出る
+    // 揺れの重み：腕の通り道（前の縁と袖口）は 0 で手もとに残し、腕から後ろへ離れた袋の部分ほど大きく揺らす。
+    // 肩から袋ごと回すと、袖を後ろへ流したときに袖口が手から離れ、手と腕が袖の外にはみ出るため
+    const clamp01 = (v) => Math.max(0, Math.min(1, v));
+    const armZ = (y) => 1.12 * y * y;                 // 腕の通り道（肩 (0,0,0) → 手首 (0,-0.25,0.07)）の z
+    const pouchT = (x, y, z) => clamp01((armZ(y) + 0.01 - z) / 0.12) * clamp01(-y / 0.15);
     const sl = superEllipsoid(0.036, 0.19, 0.094, 4.2, 26, 20);
     sl.translate(0, -0.175, -0.014);
     warp(sl, (v) => { const k = Math.max(0, -v.y - 0.05) / 0.3; v.x *= 1 + 0.18 * k; v.z -= 0.012 * k * k; });
     const trim = O.sleeveTrim;
-    out.push(rig(paint(prep(sl), O.sleeveColor || O.top, trim ? (x, y, z) => (y < -0.345 ? trim : null) : null), bone, (x, y) => Math.max(0, Math.min(1, (-y - 0.02) / 0.34))));
+    out.push(rig(paint(prep(sl), O.sleeveColor || O.top, trim ? (x, y, z) => (y < -0.345 ? trim : null) : null), bone, pouchT));
     // 袖口の内側（手が出るところ）
     const cuff = ellipsoid(0.03, 0.022, 0.012, 12, 8);
     cuff.translate(0, -0.28, 0.074);
-    out.push(rig(paint(prep(cuff), O.cuff || O.collar2 || '#e8c8c8'), bone, () => 0.75));
+    out.push(paint(prep(cuff), O.cuff || O.collar2 || '#e8c8c8'));
     // 袖の紐（赤い房）
     if (O.sleeveCord) {
       const cord = tube([V(s * 0.03, -0.01, -0.09), V(s * 0.038, -0.14, -0.104), V(s * 0.036, -0.3, -0.1)], () => 0.0045, { seg: 10, rad: 5 });
-      out.push(rig(paint(prep(cord), O.sleeveCord), bone, (x, y) => Math.max(0, Math.min(1, -y / 0.34))));
+      out.push(rig(paint(prep(cord), O.sleeveCord), bone, pouchT));
       const tassel = ellipsoid(0.008, 0.02, 0.008, 8, 6);
       tassel.translate(s * 0.036, -0.32, -0.1);
-      out.push(rig(paint(prep(tassel), O.sleeveCord), bone, () => 0.95));
+      out.push(rig(paint(prep(tassel), O.sleeveCord), bone, pouchT));
     }
   } else {
     const sl = tube([V(0, 0.01, 0), V(0, -0.12, 0.008), V(0, -0.24, 0.02)], (t) => 0.036 + t * 0.03, { seg: 10, rad: 12 });
@@ -844,9 +850,14 @@ export class GirlModel {
     W[BONE.tail1].set(0, 0.25, 0, t * 4);
     R[BONE.tail2].set(this.sp('t2', tailUp * 0.9, dt, 20, 5), fl(-0.3, 2.6) + side * 1.2, 0);
     W[BONE.tail2].set(0, 0.25, 0, t * 4.5 + 1);
-    // 袖
-    for (const [b, s] of [[BONE.sleeveL, 1], [BONE.sleeveR, -1]]) {
-      R[b].set(this.sp('sl' + s, wind * 0.9, dt, 25, 6) + fl(0.05, 3 + s * 0.4), 0, -s * wind * 0.25 + side * 0.3);
+    // 袖：体から見て後ろ（少し外）へ流す。袖の骨は腕の向きで回るので、流したい向きを腕のローカルに直してから
+    // x（ローカルの -Z へ振る）と z（+X へ振る）に分ける。腕をひねる飛びの姿勢で、腕のまま -Z へ振ると袖が背中側へ巻き込み、マフラーのようになるため
+    for (const [b, s, g] of [[BONE.sleeveL, 1, this.armL], [BONE.sleeveR, -1, this.armR]]) {
+      _q.copy(this.chest.quaternion).multiply(g.quaternion).invert();
+      _d.set(s * 0.15, 0, -1).applyQuaternion(_q);
+      const h = Math.hypot(_d.x, _d.z) || 1;
+      const amt = this.sp('sl' + s, wind * 0.55, dt, 25, 6);
+      R[b].set(amt * (-_d.z / h) + fl(0.05, 3 + s * 0.4), 0, amt * (_d.x / h) + side * 0.3);
       W[b].set(0.12 * wind, 0, 0.05 * wind, t * 7 + s);
     }
     // すそ・袴

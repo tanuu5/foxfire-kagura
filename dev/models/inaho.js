@@ -42,6 +42,10 @@ export function girlAdapter(id, title) {
       playerCam: { pos: [0, 1.75, -1.3], target: [0, 1.05, 0], fov: 25 },
       playerHead: { pos: [0, 1.5, -0.75], target: [0, 1.15, 0], fov: 25 },
       crown: { pos: [0, 1.95, -0.3], target: [0, 1.2, 0.03], fov: 25 },
+      // 腕と袖（袖口から手が出ているか）
+      armL: { pos: [1.7, 1.05, -0.1], target: [0.05, 0.85, -0.05], fov: 22 },
+      armR: { pos: [-1.7, 1.05, -0.1], target: [-0.05, 0.85, -0.05], fov: 22 },
+      sideBack: { pos: [-1.4, 1.1, -0.5], target: [0, 0.92, -0.05], fov: 32 },
     },
     lights({ THREE }) {
       const g = new THREE.Group();
