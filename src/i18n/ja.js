@@ -6,8 +6,6 @@ export const ja = {
   'boot.loading': '読み込み中…',
   'boot.noWebgl': '起動できませんでした（WebGL が使えるブラウザで開いてください）',
   'boot.loadFailed': '読み込みに失敗しました（ページを読み込み直してください）',
-  'boot.tap': 'クリック・キー・タップではじめる',
-  'boot.tapPad': 'ブラウザの決まりで、最初の 1 回だけクリックかキーを押してください（音と操作が有効になります）',
 
   'title.continue': 'つづきから',
   'title.start': 'はじめる',

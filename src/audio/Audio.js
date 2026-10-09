@@ -33,6 +33,7 @@ export class GameAudio {
     this.loops = new Map();
     this.amb = null;        // 環境音の層（unlock 後に作る）
     this.ambWant = {};
+    this._askedAt = -1e9;   // 最後に鳴らし始めを頼んだ時刻（ms）
     // タブが裏に回ったら止める（戻ったら再開）
     document.addEventListener('visibilitychange', () => {
       if (!this.ctx) return;
@@ -42,6 +43,9 @@ export class GameAudio {
   }
 
   get ready() { return !!this.ctx && this.ctx.state === 'running'; }
+  // 鳴らし始めを頼んだ直後は、まだ 'running' に変わっていないことがある。その間の効果音も捨てずに予約する
+  // （止まっている間に予約した音は、動き出したときに鳴る）。最初のボタンの「決定」の音が消えないように
+  get _canPlay() { return this.ready || (!!this.ctx && this.ctx.state !== 'closed' && performance.now() - this._askedAt < 1000); }
 
   async unlock() {
     if (this.muted || this.ready) return this.ready;
@@ -59,6 +63,7 @@ export class GameAudio {
         b.buffer = this.ctx.createBuffer(1, 1, this.ctx.sampleRate);
         b.connect(this.ctx.destination);
         b.start(0);
+        this._askedAt = performance.now();
         await this.ctx.resume();
       }
       if (!this.ready) return false;
@@ -71,7 +76,7 @@ export class GameAudio {
 
   sfx(name, p = {}) {
     try {
-      if (!this.ready) return;
+      if (!this._canPlay) return;
       const fn = SFX[name];
       if (!fn) { warn('sfx', `unknown "${name}"`); return; }
       const now = this.ctx.currentTime;
