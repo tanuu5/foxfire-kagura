@@ -167,6 +167,7 @@ export class Game {
   /** ステージを始める（台本を走らせる）。 */
   beginStage(n) {
     this.marks = [];
+    this.pend = null;
     this.fadeTarget = 0;
     this.clearField();
     this.stageNo = n;
@@ -264,22 +265,23 @@ export class Game {
     if (len > 0.25) { mx /= len; my /= len; } else { mx = my = 0; }
     const inp = this.inp;
     inp.mx = mx; inp.my = my;
-    inp.dx = I.touchMove.x; inp.dy = I.touchMove.y;
     inp.shot = I.down('shot') || I.pressed('shot') || I.device === 'touch' || settings.autoShot === 'on';
     inp.focus = I.down('focus');
-    inp.bomb = I.pressed('bomb');
-    inp.confirm = I.pressed('shot') || I.pressed('confirm');
     inp.skip = I.down('skip');
+    // 押した瞬間・指の動きは、コマが回るまでためておく（速い画面ではコマの回らないフレームがあるので、取りこぼさない）
+    const pend = (this.pend ||= { bomb: false, confirm: false, dx: 0, dy: 0 });
+    pend.bomb ||= I.pressed('bomb');
+    pend.confirm ||= I.pressed('shot') || I.pressed('confirm');
+    pend.dx += I.touchMove.x; pend.dy += I.touchMove.y;
     // 固定 60Hz：60Hz の画面なら 1 フレーム 1 コマ。速い画面では何フレームかに 1 回
     this.acc += dt;
     let n = Math.floor((this.acc + TICK * 0.25) / TICK);
     if (n > 4) { n = 4; this.acc = 0; } else this.acc -= n * TICK;
     for (let k = 0; k < n && this.state === 'play'; k++) {
+      inp.bomb = pend.bomb; inp.confirm = pend.confirm; inp.dx = pend.dx; inp.dy = pend.dy;
+      pend.bomb = pend.confirm = false; pend.dx = pend.dy = 0;
       if (this.bot) this.botInput?.(inp); // 開発用の自動プレイ（dev/bot.js）
       this.tick();
-      inp.dx = inp.dy = 0;
-      inp.bomb = false;
-      inp.confirm = false;
     }
     this.world.parallax = this.player.alive ? this.player.x / HALF_W : 0;
     this.world.update(dt, { boss: !!this.boss?.alive, spell: !!this.boss?.phase?.spell });
