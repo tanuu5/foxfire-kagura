@@ -65,10 +65,14 @@ const SHAPES = {};
 function shape(name, def) { SHAPES[name] = def; }
 
 // 丸い弾（小・中）
+// 丸い弾：芯を少し左上に寄せ、つやの点を足して、光る玉らしい立体感を出す
 const orb = (bodyR, coreR) => (L, c) => {
   const b = P.circle(bodyR);
   if (L === 'body') fill(c, b);
-  if (L === 'core') fill(c, P.circle(coreR), 1, 3);
+  if (L === 'core') {
+    fill(c, P.circle(coreR, -coreR * 0.12, -coreR * 0.14), 1, 3);
+    fill(c, P.ellipse(coreR * 0.32, coreR * 0.22, -bodyR * 0.36, -bodyR * 0.42), 1, 1);
+  }
   if (L === 'rim') stroke(c, P.circle(bodyR - 0.04), 0.09, 1);
   if (L === 'glow') radial(c, bodyR * 0.85, 1.0, 0.55);
 };
