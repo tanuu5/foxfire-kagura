@@ -28,6 +28,7 @@ export const overrides = {
   quality: QUALITIES.includes(q.get('quality')) ? q.get('quality') : null,
   lang: isLang(q.get('lang')) ? q.get('lang') : null,
   mute: q.has('mute'),
+  paddiag: q.has('paddiag'),   // ゲームパッド・フォーカスの状態を画面に出す（Safari などで調べるとき）
 };
 
 export const effective = {

@@ -6,6 +6,7 @@ export const ja = {
   'boot.loading': '読み込み中…',
   'boot.noWebgl': '起動できませんでした（WebGL が使えるブラウザで開いてください）',
   'boot.loadFailed': '読み込みに失敗しました（ページを読み込み直してください）',
+  'boot.focus': 'ゲームパッドと音を使うには、一度この画面をクリックしてください',
 
   'title.continue': 'つづきから',
   'title.start': 'はじめる',

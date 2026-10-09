@@ -83,6 +83,28 @@ try {
   for (const ev of ['pointerdown', 'pointerup', 'click', 'keydown', 'keyup', 'touchstart', 'touchend']) addEventListener(ev, unlock, { passive: true, capture: true });
   input.onPadButton = unlock;
 
+  // Safari（Mac）は、ウィンドウの入力の受け手（ファーストレスポンダ）がページになっているときだけゲームパッドの入力を渡す。
+  // アドレスバーから開いた直後などはページがまだ受け手になっておらず、一度クリックするまでパッドが効かない。
+  // ページ側から受け手を奪う手はないので、その状態（document.hasFocus() が false）のあいだ、クリックを促す案内を出す。
+  // 音も最初の操作が要るので、同じ案内でまとめる。撮影用の ?dev・タッチ操作中・遊んでいる最中は出さない
+  const focusHint = document.createElement('div');
+  focusHint.id = 'focus-hint';
+  focusHint.className = 'hidden';
+  focusHint.setAttribute('data-i18n', 'boot.focus');
+  focusHint.textContent = t('boot.focus');
+  ui.append(focusHint);
+  const coarse = !!window.matchMedia?.('(pointer: coarse)').matches;   // スマホ・タブレット（タッチが主）では出さない
+  let hintShown = false;
+  const updateFocusHint = () => {
+    const show = !dev && !coarse && !document.hasFocus() && game.state !== 'play' && input.device !== 'touch';
+    if (show === hintShown) return;
+    hintShown = show;
+    focusHint.classList.toggle('hidden', !show);
+  };
+
+  // ?paddiag：ゲームパッドとフォーカスの状態を画面に出す（Safari の実機で原因を見るため）
+  const diag = overrides.paddiag ? installPadDiag(ui, { input, audio, game: () => game }) : null;
+
   const step = (dt) => {
     game.step(dt);
     // メニュー（タイトル・一時停止・設定）はゲームパッドとキーボードでも操作できる
@@ -121,6 +143,8 @@ try {
     if (started) {
       if (!dev?.paused) step(dt);
       game.render(dt);
+      updateFocusHint();
+      diag?.(now);
     }
     requestAnimationFrame(frame);
   };
@@ -141,4 +165,41 @@ try {
 } catch (e) {
   loading.querySelector('.ld-text').textContent = t('boot.noWebgl');
   throw e;
+}
+
+// ゲームパッド・フォーカスの診断表示（?paddiag）。毎フレーム呼ぶ。0.25 秒ごとに書き換える
+function installPadDiag(ui, { input, audio, game }) {
+  const box = document.createElement('pre');
+  box.id = 'paddiag';
+  ui.append(box);
+  let connected = 0;
+  let events = [];
+  const log = (s) => { events.push(s); if (events.length > 6) events.shift(); };
+  addEventListener('gamepadconnected', (e) => { connected++; log('connected: ' + (e.gamepad?.id || '?')); });
+  addEventListener('gamepaddisconnected', (e) => log('disconnected: ' + (e.gamepad?.id || '?')));
+  addEventListener('focus', () => log('window focus'));
+  addEventListener('blur', () => log('window blur'));
+  addEventListener('pointerdown', () => log('pointerdown'), { capture: true });
+  let next = 0;
+  return (now) => {
+    if (now < next) return;
+    next = now + 250;
+    let pads = [];
+    try { pads = [...(navigator.getGamepads?.() || [])]; } catch (e) { pads = ['error: ' + e]; }
+    const lines = [
+      `hasFocus=${document.hasFocus()} visibility=${document.visibilityState} active=${document.activeElement?.tagName || '-'}`,
+      `userActivation=${navigator.userActivation?.hasBeenActive ?? 'n/a'} gamepadconnected=${connected}`,
+      `input.device=${input.device} padType=${input.padType} game.state=${game()?.state} audio=${audio.ctx?.state || 'none'}`,
+      `getGamepads: ${pads.length} slot(s)`,
+      ...pads.map((gp, i) => {
+        if (!gp) return `  [${i}] null`;
+        if (typeof gp === 'string') return `  [${i}] ${gp}`;
+        const pressed = [...gp.buttons].map((b, j) => (b?.pressed ? j : -1)).filter((j) => j >= 0);
+        const axes = [...gp.axes].map((a) => a.toFixed(2)).join(',');
+        return `  [${i}] ${gp.id.slice(0, 40)} map=${gp.mapping || '""'} conn=${gp.connected} btn=[${pressed}] axes=[${axes}]`;
+      }),
+      ...events.map((e) => '  ' + e),
+    ];
+    box.textContent = lines.join('\n');
+  };
 }

@@ -6,6 +6,7 @@ export const en = {
   'boot.loading': 'Loading…',
   'boot.noWebgl': 'Could not start (please open in a browser with WebGL).',
   'boot.loadFailed': 'Failed to load (please reload the page).',
+  'boot.focus': 'Click the page once to enable the gamepad and sound',
 
   'title.continue': 'Continue',
   'title.start': 'Start',
