@@ -75,9 +75,13 @@ try {
   applyDom();
   refreshGlyphs(input, settings);
 
-  // 最初の操作で音を出せるようにする（ブラウザの決まり）
-  const unlock = () => audio.unlock();
-  for (const ev of ['pointerdown', 'keydown', 'touchstart']) addEventListener(ev, unlock, { passive: true });
+  // 最初の操作で音を出せるようにする（ブラウザの決まり）。
+  // どの操作を「音を出してよい合図」と見なすかはブラウザで違う（Safari は pointerdown や touchstart では動き出さず、
+  // click・touchend・keyup などで動き出すことがある）ので、いくつも聞いておき、鳴り出すまで毎回試す。
+  // ゲームパッドのボタンは合図と見なさないブラウザが多いが、試すだけなら害はない
+  const unlock = () => { if (!audio.ready) audio.unlock(); };
+  for (const ev of ['pointerdown', 'pointerup', 'click', 'keydown', 'keyup', 'touchstart', 'touchend']) addEventListener(ev, unlock, { passive: true, capture: true });
+  input.onPadButton = unlock;
 
   const step = (dt) => {
     game.step(dt);

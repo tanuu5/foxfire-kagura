@@ -44,7 +44,7 @@ export class GameAudio {
   get ready() { return !!this.ctx && this.ctx.state === 'running'; }
 
   async unlock() {
-    if (this.muted) return false;
+    if (this.muted || this.ready) return this.ready;
     try {
       if (!this.ctx) {
         const AC = window.AudioContext || window.webkitAudioContext;
@@ -52,7 +52,16 @@ export class GameAudio {
         this.ctx = new AC({ latencyHint: 'interactive' });
         this.mix = createMixer(this.ctx, this.ctx.destination, this.vol);
       }
-      if (this.ctx.state !== 'running') await this.ctx.resume();
+      // Safari は、操作の処理の中で実際に音（無音でよい）を鳴らさないと動き出さないことがある。
+      // resume() も await より前（操作の処理の中）で呼ぶ。'interrupted'（Safari）からも次の操作で戻す
+      if (this.ctx.state !== 'running') {
+        const b = this.ctx.createBufferSource();
+        b.buffer = this.ctx.createBuffer(1, 1, this.ctx.sampleRate);
+        b.connect(this.ctx.destination);
+        b.start(0);
+        await this.ctx.resume();
+      }
+      if (!this.ready) return false;
       this._unlocked = true;
       if (!this.amb) { try { this.amb = buildAmbience(this.ctx, this.mix.amb); this.setAmbience(this.ambWant); } catch (e) { warn('ambience', e); } }
       if (this.pending && !this.seq) { const p = this.pending; this.pending = null; this.music(p.id, p.opts); }

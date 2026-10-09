@@ -72,6 +72,7 @@ export class Input {
     this._drag = null;
     this._lookAcc = { x: 0, y: 0 };
     this.onDevice = null;      // (device) => void　機器が変わったとき
+    this.onPadButton = null;   // () => void　ゲームパッドのボタンを押した瞬間（音の準備に使う）
 
     addEventListener('keydown', (e) => {
       if (PREVENT.has(e.code) && !isTyping(e.target)) e.preventDefault();
@@ -170,17 +171,21 @@ export class Input {
     let my = (held.up ? 1 : 0) - (held.down ? 1 : 0);
     let start = false;
 
-    // ゲームパッド（最初につながっている 1 台）
-    const pads = navigator.getGamepads ? navigator.getGamepads() : [];
-    for (const gp of pads) {
-      if (!gp) continue;
+    // ゲームパッド：つながっている全部を合わせる。最初の 1 台だけ見ると、切れたパッドの枠やパッドではない機器が
+    // 先に並ぶ環境（Safari の DualSense など）で本物のパッドを取りこぼす。標準配置のパッドがあれば、それだけを見る
+    let pads = [];
+    try { pads = [...(navigator.getGamepads?.() || [])].filter((gp) => gp && gp.connected !== false); } catch { /* 使えない環境 */ }
+    const std = pads.filter((gp) => gp.mapping === 'standard');
+    let padEdge = false;
+    for (const gp of std.length ? std : pads) {
+      const prev = this._padPrev[gp.index] || [];
       const dz = (v) => (Math.abs(v) < DEAD ? 0 : v);
       const ax = dz(gp.axes[0] || 0);
       const ay = dz(gp.axes[1] || 0);
       const rx = dz(gp.axes[2] || 0);
       const ry = dz(gp.axes[3] || 0);
       const btn = (i) => !!gp.buttons[i]?.pressed;
-      const edge = (i) => btn(i) && !this._padPrev[i];
+      const edge = (i) => btn(i) && !prev[i];
       let any = ax || ay || rx || ry;
       if (ax || ay) { mx = ax; my = -ay; }
       if (rx || ry) this._addLook(rx * this.lookSpeed.pad * dt, ry * this.lookSpeed.pad * dt * 0.6);
@@ -196,10 +201,12 @@ export class Input {
       held.right ||= btn(15) || ax > 0.5;
       if (btn(12) || btn(13) || btn(14) || btn(15)) any = true;
       if (edge(9)) start = true;
-      this._padPrev = gp.buttons.map((b) => b.pressed);
+      const now = [...gp.buttons].map((b) => !!b?.pressed);
+      if (now.some((p, i) => p && !prev[i])) padEdge = true;
+      this._padPrev[gp.index] = now;
       if (any) { this.padType = padTypeOf(gp.id); this._setDevice('pad'); }
-      break;
     }
+    if (padEdge) this.onPadButton?.();
 
     // タッチ
     const T = this._touch;
