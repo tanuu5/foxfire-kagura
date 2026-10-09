@@ -82,6 +82,7 @@ export class Screens {
     <select data-set="padType">${PAD_TYPES.map((p) => opt(p, 'settings.pad.' + p)).join('')}</select></label>
   <label class="row"><span data-i18n="settings.autoShot">${t('settings.autoShot')}</span>
     <select data-set="autoShot">${opt('off', 'settings.off')}${opt('on', 'settings.on')}</select></label>
+  <button data-act="fullscreen" class="fs-btn" data-i18n="settings.fullscreen">${t('settings.fullscreen')}</button>
   <button data-act="back" data-i18n="ui.back">${t('ui.back')}</button>
 </div></section>
 <section id="m-howto" class="modal hidden"><div class="card" data-scroll>
@@ -112,6 +113,11 @@ export class Screens {
       else if (act === 'howto') this.open('howto');
       else if (act === 'practice') this.open('practice');
       else if (act === 'records') this.open('records');
+      else if (act === 'fullscreen') {
+        const d = document;
+        if (d.fullscreenElement) d.exitFullscreen?.().catch(() => {});
+        else d.documentElement.requestFullscreen?.({ navigationUI: 'hide' }).catch(() => {});
+      }
       else if (act === 'settings') this.open('settings');
       else if (act === 'resume') cb.onResume?.();
       else if (act === 'retry') cb.onRetry?.();
@@ -138,6 +144,7 @@ export class Screens {
   /** 設定画面の表示を、今の設定にそろえる（開くたびに呼ぶ）。 */
   syncSettings() {
     const s = this.modals.settings;
+    s.querySelector('.fs-btn')?.classList.toggle('hidden', !document.fullscreenEnabled);
     for (const r of s.querySelectorAll('[data-vol]')) r.value = Math.round(settings.volume[r.dataset.vol] * 100);
     for (const sel of s.querySelectorAll('[data-set]')) sel.value = settings[sel.dataset.set];
   }

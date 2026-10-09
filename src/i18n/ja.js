@@ -56,6 +56,7 @@ export const ja = {
   'settings.pad.type1': 'タイプ1（A/B/X/Y）',
   'settings.pad.type2': 'タイプ2（×/○/□/△）',
   'settings.autoShot': 'オートショット',
+  'settings.fullscreen': '全画面の切り替え',
   'settings.on': 'オン',
   'settings.off': 'オフ',
 

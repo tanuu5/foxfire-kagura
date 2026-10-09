@@ -56,6 +56,7 @@ export const en = {
   'settings.pad.type1': 'Type 1 (A/B/X/Y)',
   'settings.pad.type2': 'Type 2 (×/○/□/△)',
   'settings.autoShot': 'Auto fire',
+  'settings.fullscreen': 'Toggle Fullscreen',
   'settings.on': 'On',
   'settings.off': 'Off',
 
