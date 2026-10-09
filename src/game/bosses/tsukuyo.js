@@ -260,8 +260,7 @@ export const TSUKUYO = {
     {
       spell: true, name: 'spell.tsukuyo.5', hp: 3600, time: 60, bonus: 3000000, start: [0, 120],
       *run(b, S) {
-        const { B, D, G } = S;
-        G.world.event('fullmoon');
+        const { B, D } = S;
         let a = 0;
         for (let k = 0; ; k++) {
           const n = nD(D, [18, 24, 30, 36]);
