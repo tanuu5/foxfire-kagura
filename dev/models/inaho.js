@@ -38,6 +38,10 @@ export function girlAdapter(id, title) {
       // 下から見上げた頭（耳の付け根・首まわりの確認用）
       headLow: { pos: [0.45, 0.98, 0.62], target: [0, 1.2, 0], fov: 32 },
       headSide: { pos: [1.0, 1.32, 0.35], target: [0, 1.2, 0], fov: 25 },
+      // ゲーム中の自機と同じ角度（後ろ上から見下ろす）
+      playerCam: { pos: [0, 1.75, -1.3], target: [0, 1.05, 0], fov: 25 },
+      playerHead: { pos: [0, 1.5, -0.75], target: [0, 1.15, 0], fov: 25 },
+      crown: { pos: [0, 1.95, -0.3], target: [0, 1.2, 0.03], fov: 25 },
     },
     lights({ THREE }) {
       const g = new THREE.Group();

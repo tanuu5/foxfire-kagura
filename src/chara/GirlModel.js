@@ -84,18 +84,25 @@ function faceGeometry(head) {
 }
 
 /** 髪の房（平たい先細りの管）。pts は頭のローカル。width(t) は幅、根元から先へ aT を振る。 */
-function strand(pts, width, { thick = 0.32, bone = 0, color, tip, seg = 18, up, arch = 0.25, tRange = [0, 1] } = {}) {
+function strand(pts, width, { thick = 0.32, bone = 0, color, tip, seg = 18, up, arch = 0.25, tRange = [0, 1], shade } = {}) {
   const ups = up || V(0, 0, 1);
   const g = tube(pts, width, { flat: thick, up: ups, seg, rad: 8, arch });
   const along = tAlong(pts);
   prep(g);
-  if (color) paint(g, color, tip ? (x, y, z) => mixColor(color, tip, Math.pow(along(x, y, z), 1.6)) : null);
+  // shade(色, x, y, z, t) で塗りを上書きできる（後ろ髪の根元を頭のかぶせの色になじませるなど）
+  if (color) {
+    const base = (x, y, z) => (tip ? mixColor(color, tip, Math.pow(along(x, y, z), 1.6)) : color);
+    paint(g, color, shade ? (x, y, z) => shade(base(x, y, z), x, y, z, along(x, y, z)) : tip ? base : null);
+  }
   rig(g, bone, (x, y, z) => tRange[0] + (tRange[1] - tRange[0]) * along(x, y, z));
   return g;
 }
 
 const _ca = new THREE.Color(), _cb = new THREE.Color();
 function mixColor(a, b, t) { return '#' + _ca.set(a).lerp(_cb.set(b), Math.max(0, Math.min(1, t))).getHexString(); }
+
+/** 髪のかぶせの地の色（根元ほど濃い）。後ろ髪の根元もこの色になじませる。 */
+function capColor(H, y) { return mixColor(H.root || H.color, H.color, (0.15 - y) * 4); }
 
 /** 頭の上の髪のかぶせ（前は生え際、横はこめかみ、後ろはうなじまで）。 */
 function hairCap(spec) {
@@ -132,11 +139,28 @@ function hairCap(spec) {
   const ring = H.ring || mixColor(H.color, H.tip || '#ffffff', 0.55);
   const clamp01 = (v) => Math.max(0, Math.min(1, v));
   paint(c, H.color, (x, y, z) => {
-    const base = mixColor(H.root || H.color, H.color, (0.15 - y) * 4);
+    const base = capColor(H, y);
     const w = clamp01(1 - Math.abs(y - 0.088) / 0.02) * clamp01((z + 0.01) / 0.07);
     return w > 0 ? mixColor(base, ring, w * 0.85) : base;
   });
   return c;
+}
+
+/** 髪のかぶせの上の点（a：正面 0 から回る角度、th：てっぺん 0 から下への角度、k：かぶせに対する大きさ）。 */
+const capPt = (a, th, k) => V(Math.sin(th) * Math.sin(a) * 0.128 * k, Math.cos(th) * 0.148 * k + 0.006, Math.sin(th) * Math.cos(a) * 0.135 * k);
+
+/**
+ * 根元をかぶせの中から生やす房。roots（かぶせに沿う点）を pts の前に足し、その部分は細い先から wfn0(0) の幅へ広がり、
+ * 色はかぶせの地の色からなじませる。pts から先の幅・揺れは今までどおり。
+ * 房を頭の途中から急に始めると、房の端と輪郭線がかぶせの上に黒い段差（切れ目）として見えるため。
+ */
+function rootedStrand(H, roots, pts, wfn0, opts) {
+  const full = [...roots, ...pts];
+  const len = (q) => q.slice(1).reduce((s, p, k) => s + p.distanceTo(q[k]), 0);
+  const rf = len(full.slice(0, roots.length + 1)) / len(full);
+  const wfn = (t) => (t < rf ? (0.12 + 0.88 * Math.sin((t / rf) * Math.PI * 0.5)) * wfn0(0) : wfn0((t - rf) / (1 - rf)));
+  const shade = (c, x, y, z, t) => (t < rf ? mixColor(capColor(H, y), c, Math.pow(t / rf, 2)) : c);
+  return strand(full, wfn, { ...opts, seg: (opts.seg ?? 18) + 8, tRange: [-rf / (1 - rf), 1], shade });
 }
 
 /** 前髪・横髪・後ろ髪・アホ毛。 */
@@ -154,31 +178,35 @@ function hairStrands(spec) {
     const sx = Math.sin(a), cz = Math.cos(a);
     const len = baseLen * LEN[i % LEN.length] * (1 - 0.12 * Math.abs(u));
     const inward = (H.bangs?.part ? Math.sign(u) * 0.012 : -u * 0.008);
-    const p0 = V(sx * 0.07, 0.155, cz * 0.07 + 0.02);
     const p1 = V(sx * 0.12, 0.118, cz * 0.13);
     const ym = 0.11 - len * 0.5, ye = 0.11 - len;
     const p2 = V(sx * 0.136 + inward * 0.4, ym, cz * 0.148);
     const p3 = V(sx * 0.13 + inward, ye, cz * 0.146 + 0.006);
     const w = (H.bangs?.w ?? 0.026) * (1 - 0.15 * Math.abs(u));
-    out.push(strand([p0, p1, p2, p3], (t) => w * (t < 0.55 ? 1 : 1 - Math.pow((t - 0.55) / 0.45, 1.4)) + 0.0008, { color: col, tip, up: V(sx, 0.35, cz).normalize(), thick: 0.28, arch: 0.45, seg: 20 }));
+    const roots = [capPt(a, Math.PI * 0.05, 0.95), capPt(a, Math.PI * 0.15, 1.04)];
+    out.push(rootedStrand(H, roots, [p1, p2, p3], (t) => w * (t < 0.55 ? 1 : 1 - Math.pow((t - 0.55) / 0.45, 1.4)) + 0.0008, { color: col, tip, up: V(sx, 0.35, cz).normalize(), thick: 0.28, arch: 0.45, seg: 20 }));
   }
   // 細い房を間に（毛先の変化）
   for (const u of H.bangs?.thin ?? [-0.55, 0.15, 0.62]) {
     const a = u, sx = Math.sin(a), cz = Math.cos(a);
     const len = baseLen * 1.08;
-    const pts = [V(sx * 0.08, 0.15, cz * 0.08 + 0.02), V(sx * 0.125, 0.112, cz * 0.14), V(sx * 0.138, 0.11 - len * 0.55, cz * 0.15), V(sx * 0.132 - u * 0.01, 0.11 - len, cz * 0.15)];
-    out.push(strand(pts, (t) => 0.011 * (1 - Math.pow(t, 1.5)) + 0.0006, { color: col, tip, up: V(sx, 0.35, cz).normalize(), thick: 0.3, arch: 0.3, seg: 16 }));
+    const pts = [V(sx * 0.125, 0.112, cz * 0.14), V(sx * 0.138, 0.11 - len * 0.55, cz * 0.15), V(sx * 0.132 - u * 0.01, 0.11 - len, cz * 0.15)];
+    const roots = [capPt(a, Math.PI * 0.07, 0.95), capPt(a, Math.PI * 0.17, 1.04)];
+    out.push(rootedStrand(H, roots, pts, (t) => 0.011 * (1 - Math.pow(t, 1.5)) + 0.0006, { color: col, tip, up: V(sx, 0.35, cz).normalize(), thick: 0.3, arch: 0.3, seg: 16 }));
   }
   // 横髪（顔の両わき）
   if (H.side !== false) {
     for (const s of [-1, 1]) {
       const len = H.sideLen ?? 0.26;
       const bone = s > 0 ? BONE.sideL : BONE.sideR;
-      const p = [V(s * 0.118, 0.07, 0.06), V(s * 0.14, -0.02, 0.07), V(s * 0.142, -0.02 - len * 0.5, 0.06), V(s * 0.13, -0.02 - len, 0.05)];
-      out.push(strand(p, (t) => (H.sideW ?? 0.03) * (1 - Math.pow(t, 2.5)) + 0.002, { color: col, tip, bone, up: V(s, 0, 0.6).normalize(), thick: 0.35, arch: 0.3 }));
+      // 根元はこめかみの上のかぶせから（a は横向き、少し前／後ろ）
+      const p = [V(s * 0.14, -0.02, 0.07), V(s * 0.142, -0.02 - len * 0.5, 0.06), V(s * 0.13, -0.02 - len, 0.05)];
+      const r1 = [capPt(s * 1.1, Math.PI * 0.12, 0.95), capPt(s * 1.15, Math.PI * 0.3, 1.04), capPt(s * 1.2, Math.PI * 0.42, 1.1)];
+      out.push(rootedStrand(H, r1, p, (t) => (H.sideW ?? 0.03) * (1 - Math.pow(t, 2.5)) + 0.002, { color: col, tip, bone, up: V(s, 0, 0.6).normalize(), thick: 0.35, arch: 0.3 }));
       // その後ろにもう 1 房
-      const p2 = [V(s * 0.126, 0.04, -0.01), V(s * 0.15, -0.05, 0.0), V(s * 0.148, -0.05 - len * 0.45, -0.01), V(s * 0.135, -0.04 - len * 0.85, -0.02)];
-      out.push(strand(p2, (t) => 0.034 * (1 - Math.pow(t, 2.5)) + 0.002, { color: col, tip, bone, up: V(s, 0, 0.2).normalize(), thick: 0.35, arch: 0.3 }));
+      const p2 = [V(s * 0.15, -0.05, 0.0), V(s * 0.148, -0.05 - len * 0.45, -0.01), V(s * 0.135, -0.04 - len * 0.85, -0.02)];
+      const r2 = [capPt(s * 1.5, Math.PI * 0.12, 0.95), capPt(s * 1.55, Math.PI * 0.3, 1.04), capPt(s * 1.6, Math.PI * 0.45, 1.1)];
+      out.push(rootedStrand(H, r2, p2, (t) => 0.034 * (1 - Math.pow(t, 2.5)) + 0.002, { color: col, tip, bone, up: V(s, 0, 0.2).normalize(), thick: 0.35, arch: 0.3 }));
     }
   }
   // 後ろ髪
@@ -186,11 +214,13 @@ function hairStrands(spec) {
   if (back !== 'none') {
     const len = back === 'short' ? 0.16 : back === 'mid' ? 0.36 : H.backLen ?? 0.62;
     const n = back === 'short' ? 9 : 11;
+    // 根元は頭のてっぺん近く（かぶせの中）から細く生え、かぶせの丸みに沿って外へ出る（rootedStrand）
     for (let i = 0; i < n; i++) {
       const u = (i / (n - 1)) * 2 - 1;
       const a = Math.PI + u * 1.25;                 // 後ろの弧
       const sx = Math.sin(a), cz = Math.cos(a);
-      const p0 = V(sx * 0.125, 0.06, cz * 0.13);
+      const roots = [capPt(a, Math.PI * 0.1, 0.96), capPt(a, Math.PI * 0.27, 1.04), capPt(a, Math.PI * 0.44, 1.1)];
+      const p0 = roots[2];
       const p1 = V(sx * 0.15, -0.06, cz * 0.155);
       const tie = H.tie;                             // 結ぶ位置（後ろ髪が集まる）
       let pts;
@@ -207,10 +237,10 @@ function hairStrands(spec) {
         pts = [p0, p1, p2, p3];
       }
       const w = (H.backW ?? 0.05) * (1 - 0.25 * Math.abs(u));
-      const wfn = tie && back === 'long'
+      const wfn0 = tie && back === 'long'
         ? (t) => w * (t < 0.5 ? 1 - t * 0.9 : 0.55 + (t - 0.5) * 0.7) * (1 - Math.pow(t, 6)) + 0.002
         : (t) => w * (1 - Math.pow(t, 2.6)) + 0.002;
-      out.push(strand(pts, wfn, { color: col, tip, bone: BONE.hairBack, up: V(sx, 0, cz).normalize(), thick: 0.32, arch: 0.25, seg: 22 }));
+      out.push(rootedStrand(H, roots.slice(0, 2), pts, wfn0, { color: col, tip, bone: BONE.hairBack, up: V(sx, 0, cz).normalize(), thick: 0.32, arch: 0.25, seg: 22 }));
     }
     // 姫カット（つくよ）：横の髪を顎の高さでそろえる
     if (H.hime) {
