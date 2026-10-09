@@ -69,6 +69,7 @@ export const POKO = {
   model: 'girl:poko',
   color: 'orange',
   spellColor: 0x6fe08a,
+  epithet: 'epithet.poko',
   music: 'boss1',
   r: 26,
   dropLife: true,

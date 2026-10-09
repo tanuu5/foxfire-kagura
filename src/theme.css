@@ -161,3 +161,10 @@ html:not([data-device="touch"]) .touch-only { display: none; }
 .recordcard .rec-spells li { display: flex; justify-content: space-between; gap: 1em; padding: 0.2em 0; border-bottom: 1px solid rgba(255, 214, 150, 0.12); font-family: var(--mincho); }
 .recordcard .rec-spells li.unknown { color: var(--ink-dim); }
 .recordcard .rec-spells b { font-family: var(--font); font-variant-numeric: tabular-nums; }
+#hud .side-r .deco { margin-top: auto; writing-mode: vertical-rl; font-family: var(--mincho); font-weight: 800; font-size: 2.6em; letter-spacing: 0.25em;
+  color: rgba(255, 236, 205, 0.16); text-shadow: 0 0 18px rgba(127, 210, 255, 0.18); align-self: flex-start; }
+html[lang="en"] #hud .side-r .deco { writing-mode: horizontal-tb; font-size: 1.4em; letter-spacing: 0.08em; }
+#hud .side-r .stage { margin-top: 0.4em; }
+#fieldui .bosstitle { position: absolute; right: calc(var(--u) * 10); top: 38%; text-align: right; font-family: var(--mincho); text-shadow: 0 1px 3px #000, 0 0 10px #000; }
+#fieldui .bosstitle small { display: block; font-size: 0.95em; color: var(--kin); letter-spacing: 0.15em; }
+#fieldui .bosstitle b { display: block; font-size: 2.1em; letter-spacing: 0.3em; color: #fff; margin-top: 0.1em; }

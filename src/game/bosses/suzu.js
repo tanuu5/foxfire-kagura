@@ -68,6 +68,7 @@ export const SUZU = {
   model: 'girl:suzu',
   color: 'violet',
   spellColor: 0xc06aff,
+  epithet: 'epithet.suzu',
   music: 'boss2',
   r: 26,
   dropLife: true,

@@ -16,6 +16,15 @@ export default {
   *script(S) {
     S.music('st1');
     if (S.section('road1')) {
+      // 物語の導入（はじめから遊ぶときだけ）
+      if (!S.G.practice) {
+        S.G.hud.center('', S.t('intro.1'), 'credit');
+        yield 150;
+        S.G.hud.center('', S.t('intro.2'), 'credit');
+        yield 150;
+        S.G.hud.center('');
+        yield 20;
+      }
       S.title(1);
       yield 160;
       yield* W.vDrop(S, { color: 'sky', after: 90 });

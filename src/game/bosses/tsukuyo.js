@@ -75,6 +75,7 @@ export const TSUKUYO = {
   model: 'girl:tsukuyo',
   color: 'pink',
   spellColor: 0xffe6a0,
+  epithet: 'epithet.tsukuyo',
   music: 'boss3',
   r: 26,
   final: true,

@@ -95,6 +95,10 @@ export const ja = {
   'ui.back': 'もどる',
   'ui.close': 'とじる',
 
+  // 物語の導入
+  'intro.1': '中秋の夜。いつまで待っても、月が昇らない――',
+  'intro.2': '稲荷の見習い巫女・いなほは、狐火を連れて夜空へ飛び立った。',
+
   // ステージ
   'stage1.title': 'ステージ 1',
   'stage1.sub': '夕暮れの千本鳥居',
@@ -107,6 +111,9 @@ export const ja = {
   'stage3.short': '3：雲海の上、月の社',
 
   // 名前
+  'epithet.poko': '化け上手の豆狸',
+  'epithet.suzu': '灯籠運びの猫又',
+  'epithet.tsukuyo': '月の都のさびしがり',
   'name.inaho': 'いなほ',
   'name.poko': 'ぽこ',
   'name.suzu': 'すず',

@@ -470,12 +470,14 @@ export class Game {
       get player() { return G.player; },
       SHAPE, KIND, ITEM,
       rand: (lo, hi) => G.rng.range(lo, hi),
+      t,
       enemy: (kind, x, y, script) => G.spawnEnemy(kind, x, y, script),
       /** ボス戦（登場 → 会話 → フェーズ → 撃破 → 会話）。 */
       *boss(def, { before, after } = {}) {
         (G.marks ||= []).push([def.midboss ? 'midboss' : 'boss', G.frame]);
         const b = G.spawnBoss(def);
         if (def.music) G.playMusic(def.music);
+        if (def.epithet) G.hud.bossTitle(t(def.epithet), t(def.nameKey));
         yield* b.enter(0, 120);
         if (before) yield* G.S.dialogue(before);
         yield* b.fight();

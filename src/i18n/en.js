@@ -95,6 +95,9 @@ export const en = {
   'ui.back': 'Back',
   'ui.close': 'Close',
 
+  'intro.1': 'The night of the harvest moon. No matter how long they wait, the moon does not rise...',
+  'intro.2': 'Inaho, an apprentice shrine maiden of Inari, takes to the night sky with her foxfires.',
+
   'stage1.title': 'Stage 1',
   'stage1.sub': 'A Thousand Torii at Dusk',
   'stage1.short': '1: A Thousand Torii at Dusk',
@@ -105,6 +108,9 @@ export const en = {
   'stage3.sub': 'The Moon Shrine Above the Sea of Clouds',
   'stage3.short': '3: The Moon Shrine Above the Clouds',
 
+  'epithet.poko': 'The Shapeshifting Little Tanuki',
+  'epithet.suzu': 'The Lantern-Carrying Nekomata',
+  'epithet.tsukuyo': 'The Lonely Princess of the Moon',
   'name.inaho': 'Inaho',
   'name.poko': 'Poko',
   'name.suzu': 'Suzu',

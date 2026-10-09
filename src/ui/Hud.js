@@ -26,6 +26,7 @@ export class Hud {
     <div class="stat"><span class="lbl" data-i18n="hud.power">${t('hud.power')}</span><b class="v-power">1.00</b></div>
     <div class="stat"><span class="lbl" data-i18n="hud.graze">${t('hud.graze')}</span><b class="v-graze">0</b></div>
     <div class="stat"><span class="lbl" data-i18n="hud.point">${t('hud.point')}</span><b class="v-point">0</b></div>
+    <div class="deco" data-i18n="game.title">${t('game.title')}</div>
     <div class="stage v-stage"></div>
   </div>
   <div class="topbar">
@@ -45,6 +46,7 @@ export class Hud {
     <div class="dialogue hidden"><div class="speaker"></div><div class="text"></div><div class="next">▼</div></div>
     <div class="popups"></div>
     <div class="music hidden"></div>
+    <div class="bosstitle hidden"><small></small><b></b></div>
   </div>
 </div>`);
     this.el = root.querySelector('#hud');
@@ -61,6 +63,8 @@ export class Hud {
     this.dlgEl = this.el.querySelector('.dialogue');
     this.popEl = this.el.querySelector('.popups');
     this.musicEl = this.el.querySelector('.music');
+    this.btEl = this.el.querySelector('.bosstitle');
+    this.btT = 0;
     this.musicT = 0;
     onLangChange(() => { this.last = {}; });
   }
@@ -151,6 +155,14 @@ export class Hud {
     return el;
   }
 
+  /** ボスの二つ名と名前（登場のとき、3 秒ほど）。 */
+  bossTitle(epithet, name) {
+    this.btEl.querySelector('small').textContent = epithet;
+    this.btEl.querySelector('b').textContent = name;
+    this.btEl.classList.remove('hidden');
+    this.btT = 200;
+  }
+
   /** 曲名を出す（ゲームの時間で 4 秒ほど）。 */
   music(name) {
     this.musicEl.textContent = '♪ ' + name;
@@ -160,6 +172,13 @@ export class Hud {
 
   /** 毎フレーム：出している文字の寿命を進める（ゲームの時間で。CSS のアニメーションは使わない）。 */
   tickPopups() {
+    if (this.btT > 0) {
+      this.btT--;
+      const k = Math.min(1, this.btT / 40, (200 - this.btT) / 25);
+      this.btEl.style.opacity = k.toFixed(2);
+      this.btEl.style.transform = `translateX(${((1 - Math.min(1, (200 - this.btT) / 25)) * 20).toFixed(1)}%)`;
+      if (this.btT === 0) this.btEl.classList.add('hidden');
+    }
     if (this.musicT > 0) {
       this.musicT--;
       const k = Math.min(1, this.musicT / 40, (260 - this.musicT) / 20);
@@ -175,5 +194,5 @@ export class Hud {
     }
   }
 
-  clearPopups() { this.popEl.innerHTML = ''; }
+  clearPopups() { this.popEl.innerHTML = ''; this.btT = 0; this.btEl.classList.add('hidden'); }
 }
