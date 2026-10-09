@@ -5,7 +5,7 @@
   "type": "module",
   "description": "狐火かぐら",
   "author": "たぬ",
-  "license": "MIT",
+  "license": "SEE LICENSE IN LICENSE",
   "scripts": {
     "dev": "vite",
     "build": "vite build",

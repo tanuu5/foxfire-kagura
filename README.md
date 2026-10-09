@@ -3,7 +3,7 @@
 月の昇らない中秋の夜、ケモ耳の狐の巫女が夜空を駆ける。ブラウザで遊べる 3D の縦スクロール弾幕シューティング。
 
 [![Made with Claude Opus 5.5 (MAX)](https://img.shields.io/badge/Made%20with-Claude%20Opus%205.5%20%28MAX%29-D97757?style=for-the-badge)](https://www.anthropic.com/claude)
-[![License: MIT](https://img.shields.io/badge/License-MIT-8a6a4a?style=for-the-badge)](./LICENSE)
+[![License: MIT (キャラクターを除く)](https://img.shields.io/badge/License-MIT%20%28%E3%82%AD%E3%83%A3%E3%83%A9%E3%82%AF%E3%82%BF%E3%83%BC%E3%82%92%E9%99%A4%E3%81%8F%29-8a6a4a?style=for-the-badge)](./LICENSE)
 
 <p align="center">
   <img src="docs/screenshots/gameplay.webp" width="540" alt="プレイ映像：巨大な満月を背にした月のうさぎのボスが、虹色の弾の輪を何重にも放ち、狐の巫女がその間をすり抜ける">
@@ -95,6 +95,7 @@ npm run build    # dist/ に書き出す（相対パスなので、どこに置�
 ## クレジット・ライセンス
 
 - コード：MIT License（[LICENSE](LICENSE)）© 2026 たぬ
+- **キャラクターは MIT License の対象外です。** 4 人のキャラクター（いなほ・ぽこ・すず・つくよ）のデザイン、そのモデルを組み立てるコードとデータ（`src/chara/GirlModel.js`・`specs.js`・`face.js`）、キャラクターが写っている画像・動画は、複製・改変・再配布やほかの作品での利用を許諾していません（詳しくは [LICENSE](LICENSE) の例外）。
 - 3D 描画：[three.js](https://threejs.org/)（MIT License）
 - フォント：[Shippori Mincho B1](https://fonts.google.com/specimen/Shippori+Mincho+B1)、[Zen Maru Gothic](https://fonts.google.com/specimen/Zen+Maru+Gothic)（SIL Open Font License。Google Fonts からページで読み込みます）
 - スペルカードやグレイズなどの仕組みは、弾幕シューティングの定番にならったものです。キャラクター・ステージ・弾幕・楽曲は、すべてこの作品のためのオリジナルです。
@@ -114,4 +115,4 @@ A 3D vertical-scrolling bullet-hell shooter you can play in your browser. On the
 
 Controls: arrow keys move · `Z` shoot · `Shift` focus (slow, shows your hitbox) · `X` bomb · `Esc` pause.
 
-Code is released under the MIT License. Built with three.js (MIT).
+Code is released under the MIT License, except for the four characters (Inaho, Poko, Suzu and Tsukuyo) — their designs, the code that builds their models and the images that show them are not licensed for reuse (see [LICENSE](LICENSE)). Built with three.js (MIT).

@@ -1,3 +1,5 @@
+// ※ このファイルと、4 人のキャラクター（いなほ・ぽこ・すず・つくよ）のデザインは MIT License の対象外です（LICENSE の「例外」を参照）。
+//   The code in this file and the characters' designs are not covered by the MIT License (see the exception in LICENSE).
 // ケモ耳の女の子の 3D モデル（4 人で共通の作り）。仕様（specs.js）で髪・耳・しっぽ・服・持ち物を切り替える。
 // 単位はメートル（身長およそ 1.4 m、耳を入れて 1.5 m）。足もとが y = 0、正面が +Z。キャラの右手が -X。
 //

@@ -19,3 +19,27 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+-------------------------------------------------------------------------------
+
+Exception: the characters
+
+The MIT License above does not apply to the four characters of this game:
+Inaho (the fox shrine maiden), Poko (the tanuki), Suzu (the nekomata) and
+Tsukuyo (the moon rabbit). This exception covers the characters' designs and
+likenesses, the code and data that define and build their 3D models
+(src/chara/GirlModel.js, src/chara/specs.js and src/chara/face.js), and the
+images and videos that show them (such as those in docs/screenshots/). No
+license is granted to copy, modify, distribute, or use the characters in other
+works. Everything else in this repository is licensed under the MIT License
+above.
+
+例外：キャラクター
+
+上記の MIT License は、このゲームに登場する 4 人のキャラクター（狐の巫女の
+いなほ、豆狸のぽこ、猫又のすず、月のうさぎのつくよ）には適用されません。対象外と
+なるのは、キャラクターのデザイン（外見）、その 3D モデルを定めて組み立てるコード
+とデータ（src/chara/GirlModel.js、src/chara/specs.js、src/chara/face.js）、
+キャラクターが写っている画像・動画（docs/screenshots/ のものなど）です。
+キャラクターの複製・改変・再配布や、ほかの作品での利用は許諾していません。それ以外
+のファイルは、上記の MIT License で利用できます。

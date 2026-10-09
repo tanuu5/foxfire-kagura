@@ -1,3 +1,5 @@
+// ※ このファイルと、4 人のキャラクター（いなほ・ぽこ・すず・つくよ）のデザインは MIT License の対象外です（LICENSE の「例外」を参照）。
+//   The code in this file and the characters' designs are not covered by the MIT License (see the exception in LICENSE).
 // 顔のテクスチャ（目・眉・口・ほお・化粧）を canvas に描く。表情を変えたときだけ描き直す。
 // canvas の 1 辺 = 頭のローカル座標で 2 × FACE.half（m）。中心は頭の中心から FACE.cy だけ下。正面からの平行投影で貼る。
 import * as THREE from 'three';
