@@ -327,6 +327,8 @@ export default class TitleWorld {
   enter() {
     const w = this.world;
     w.scene.background = new THREE.Color(0x05070c);
+    // 縦長ではカメラの真下近くの石畳まで写るので、近くで切れないようにする（出るときに戻す）
+    w.camera.near = 0.25;
     w.setFov(38);
     w.renderer.setLook?.({ exposure: 1.0, bloomStrength: 0.5, bloomRadius: 0.55, bloomThreshold: 0.9, vignette: 0.42, saturation: 1.06, contrast: 1.04,
       lift: [0.008, 0.01, 0.02], gain: [1.0, 0.99, 1.0] });
@@ -373,12 +375,14 @@ export default class TitleWorld {
       const f = p.fox ? 0.8 + 0.2 * Math.sin(t * 2.3) * Math.sin(t * 1.3 + 1) : 0.9 + 0.1 * Math.sin(t * 7 + i * 3) * Math.sin(t * 3.1 + i);
       p.L.intensity = p.I * f;
     }
-    // カメラ：立ち位置から解く（横長：右半分に大きく、縦長：右上に）
+    // カメラ：立ち位置から解く（横長：右半分に大きく、縦長：上半分に）。
+    // 縦長で見上げると、カメラが地面の高さまで下がって石畳が見えなくなり、いなほが宙に浮き、奥の石段が暗い四角に見える。
+    // なので縦長はほぼ水平に構え、足もとの石畳と鳥居の額が両方入る大きさにする
     const cam = w.camera;
     const tall = w.layout?.mode === 'tall';
     const sy = Math.sin(t * 0.11) * 0.012 + Math.sin(t * 0.047) * 0.008, sp = Math.sin(t * 0.09 + 1) * 0.006, sr = Math.sin(t * 0.07) * 0.004;
-    const pitch = (tall ? 0.18 : 0.13) + sp, yaw = sy;
-    const f = tall ? { x: 0.3, y: 0.42, h: 0.4 } : { x: 0.36, y: -0.1, h: 0.56 };
+    const pitch = (tall ? -0.02 : 0.13) + sp, yaw = sy;
+    const f = tall ? { x: 0.32, y: 0.36, h: 0.34 } : { x: 0.36, y: -0.1, h: 0.56 };
     frameAnchor(cam, w.rig.pos, this.mid, H, f.x, f.y, f.h, pitch, yaw, sr);
     w.rig.pos.y += Math.sin(t * 0.13) * 0.03;
     w.rig.yaw = yaw;
@@ -398,6 +402,8 @@ export default class TitleWorld {
   }
 
   dispose() {
+    this.world.camera.near = 1;
+    this.world.camera.updateProjectionMatrix();
     this.guide(false);
     this.group.removeFromParent();
     this.group.traverse((o) => { if (o.isInstancedMesh) o.dispose(); });
