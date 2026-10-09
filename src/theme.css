@@ -16,6 +16,11 @@
 }
 html, body { background: #07060c; color: var(--ink); font: 16px/1.5 var(--font); }
 #loading { background: #07060c; color: var(--ink); font-family: var(--mincho); letter-spacing: 0.1em; }
+/* 最初の操作を待つ間：タイトルを透かして、案内をゆっくり点滅させる */
+#loading.tap { background: rgba(7, 6, 12, 0.6); cursor: pointer; align-content: center; transition: background 0.5s, opacity 0.5s; }
+#loading.tap .ld-text { font-size: clamp(18px, 3.2vw, 28px); text-align: center; padding: 0 16px; animation: ld-blink 2.4s ease-in-out infinite; }
+#loading.tap .ld-sub { margin-top: 1em; font-family: var(--font); font-size: 14px; color: var(--ink-dim); letter-spacing: 0.04em; text-align: center; padding: 0 16px; max-width: 36em; }
+@keyframes ld-blink { 50% { opacity: 0.45; } }
 
 /* ボタン */
 button { font: inherit; font-weight: 700; color: var(--ink); background: rgba(30, 24, 48, 0.86); border: 1px solid var(--panel-edge);

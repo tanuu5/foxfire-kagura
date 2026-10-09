@@ -6,6 +6,8 @@ export const en = {
   'boot.loading': 'Loading…',
   'boot.noWebgl': 'Could not start (please open in a browser with WebGL).',
   'boot.loadFailed': 'Failed to load (please reload the page).',
+  'boot.tap': 'Click, press a key or tap to begin',
+  'boot.tapPad': 'Browsers require one click or key press first (this turns on sound and controls).',
 
   'title.continue': 'Continue',
   'title.start': 'Start',

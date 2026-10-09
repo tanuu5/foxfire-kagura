@@ -81,12 +81,37 @@ try {
   // ゲームパッドのボタンは合図と見なさないブラウザが多いが、試すだけなら害はない
   const unlock = () => { if (!audio.ready) audio.unlock(); };
   for (const ev of ['pointerdown', 'pointerup', 'click', 'keydown', 'keyup', 'touchstart', 'touchend']) addEventListener(ev, unlock, { passive: true, capture: true });
-  input.onPadButton = unlock;
+  input.onPadButton = () => { unlock(); gate?.padHint(); };
+
+  // 読み込みのあと、最初のクリック・キー・タップを待つ画面。ブラウザは操作の前に音を出させず、
+  // Safari はページを一度クリックするまでゲームパッドも届けない。ゲームパッドのボタンはどのブラウザも合図と見なさないので、
+  // パッドだけで始めると音が鳴らないまま進んでしまう。読み込み中にもうクリックしてあれば出さない（撮影・?mute でも出さない）
+  let gate = null;
+  let gateUntil = 0;          // 閉じた直後のキーで、タイトルのメニューまで動かないように
+  const openGate = (onDone) => {
+    const text = loading.querySelector('.ld-text');
+    text.textContent = t('boot.tap');
+    const sub = document.createElement('div');
+    sub.className = 'ld-sub';
+    loading.append(sub);
+    loading.classList.add('tap');
+    const evs = ['pointerup', 'keydown', 'touchend'];
+    const done = (e) => {
+      if (e.type === 'keydown' && ['Shift', 'Control', 'Alt', 'Meta'].includes(e.key)) return;
+      for (const ev of evs) removeEventListener(ev, done, true);
+      input.keysPressed.clear();
+      gateUntil = performance.now() + 250;
+      gate = null;
+      onDone();
+    };
+    for (const ev of evs) addEventListener(ev, done, { capture: true });
+    gate = { padHint: () => { sub.textContent = t('boot.tapPad'); } };
+  };
 
   const step = (dt) => {
     game.step(dt);
     // メニュー（タイトル・一時停止・設定）はゲームパッドとキーボードでも操作できる
-    if (game.state !== 'play') nav.update(input.menu);
+    if (game.state !== 'play' && !gate && performance.now() > gateUntil) nav.update(input.menu);
   };
 
   dev = installDevHarness({
@@ -130,9 +155,14 @@ try {
     started = true;
     last = performance.now();
     requestAnimationFrame(() => requestAnimationFrame(() => {
-      loading.classList.add('done');
-      // 読み込み画面が消えきってから「準備完了」にする（撮影ツールは ready を合図に撮り始めるので）
-      setTimeout(() => { loading.remove(); dev?.markReady(); }, 600);
+      const finish = () => {
+        loading.classList.add('done');
+        // 読み込み画面が消えきってから「準備完了」にする（撮影ツールは ready を合図に撮り始めるので）
+        setTimeout(() => { loading.remove(); dev?.markReady(); }, 600);
+      };
+      const active = navigator.userActivation ? navigator.userActivation.hasBeenActive : audio.ready;
+      if (dev || overrides.mute || active) finish();
+      else openGate(finish);
     }));
   }).catch((e) => {
     loading.querySelector('.ld-text').textContent = t('boot.loadFailed');
