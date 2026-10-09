@@ -27,7 +27,7 @@ const D = {
   shoulderY: 0.95,
   shoulderX: 0.118,
   neckY: 1.02,
-  headY: 1.19,      // 頭の中心
+  headY: 1.162,     // 頭の中心（あごが襟のすぐ上に来る高さ。上げると首が長く見える）
 };
 
 /** 上下左右に丸い箱（超楕円体）。n が大きいほど四角い。 */
@@ -127,12 +127,14 @@ function hairCap(spec) {
   g.computeVertexNormals();
   const c = shell(g, (v) => v.multiplyScalar(0.965));
   prep(c);
-  // 根元は少し濃く、天使の輪（明るい帯）を入れる
-  const ring = H.ring || mixColor(H.color, '#ffffff', 0.35);
+  // 根元は少し濃く、天使の輪（明るい帯）を入れる。
+  // 輪は毛先の色寄りにし（白を混ぜると暗い髪で灰色のまだらになる）、上下と横の境目はぼかす
+  const ring = H.ring || mixColor(H.color, H.tip || '#ffffff', 0.55);
+  const clamp01 = (v) => Math.max(0, Math.min(1, v));
   paint(c, H.color, (x, y, z) => {
-    const r = Math.hypot(x, z);
-    if (y > 0.07 && y < 0.105 && z > -0.02) return ring;
-    return mixColor(H.root || H.color, H.color, (0.15 - y) * 4);
+    const base = mixColor(H.root || H.color, H.color, (0.15 - y) * 4);
+    const w = clamp01(1 - Math.abs(y - 0.088) / 0.02) * clamp01((z + 0.01) / 0.07);
+    return w > 0 ? mixColor(base, ring, w * 0.85) : base;
   });
   return c;
 }
@@ -269,15 +271,19 @@ function ears(spec) {
       const wide = E.type === 'fox' ? 0.066 : E.type === 'cat' ? 0.054 : 0.06;
       base = E.type === 'tanuki' ? V(s * 0.092, 0.13, -0.01) : V(s * 0.085, 0.125, -0.005);
       const tilt = (E.type === 'tanuki' ? 0.55 : E.type === 'cat' ? 0.38 : 0.3) * s;
+      // 根元は頭の中まで sink だけ埋める（頭の丸みで付け根の下に隙間ができ、耳が浮いて見えないように）
+      const sink = 0.04;
       const mk = (w, h, d) => {
-        const g = new THREE.ConeGeometry(1, 1, 18, 6);
+        const g = new THREE.ConeGeometry(1, 1, 18, 8, true);
         g.translate(0, 0.5, 0);
         warp(g, (v) => {
-          const t = v.y;
+          const a = Math.atan2(v.z, v.x);
+          const y = -sink + v.y * (h + sink);
+          const t = Math.max(0, y / h); // 頭の表面から先へ 0〜1
           // 根元は丸く、先はとがる（たぬきは丸い耳）
           const rr = E.type === 'tanuki' ? Math.sqrt(Math.max(0, 1 - t * t)) * 1.05 : 1;
-          v.x *= w * rr; v.z *= d * rr; v.y *= h;
-          v.z -= 0.01 * t * t; // 先を少し後ろへ
+          const f = (1 - t) * rr;
+          v.set(Math.cos(a) * w * f, y, Math.sin(a) * d * f - 0.01 * t * t); // 先を少し後ろへ
         });
         return g;
       };

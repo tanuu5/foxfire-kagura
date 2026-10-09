@@ -35,6 +35,9 @@ export function girlAdapter(id, title) {
     views: {
       face: { pos: [0, 1.2, 0.75], target: [0, 1.17, 0], fov: 25 },
       bust: { pos: [0, 1.05, 1.6], target: [0, 1.0, 0], fov: 28 },
+      // 下から見上げた頭（耳の付け根・首まわりの確認用）
+      headLow: { pos: [0.45, 0.98, 0.62], target: [0, 1.2, 0], fov: 32 },
+      headSide: { pos: [1.0, 1.32, 0.35], target: [0, 1.2, 0], fov: 25 },
     },
     lights({ THREE }) {
       const g = new THREE.Group();
