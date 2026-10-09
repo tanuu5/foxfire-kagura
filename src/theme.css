@@ -97,7 +97,7 @@ html:not([data-device="touch"]) .touch-only { display: none; }
 #fieldui .boss-timer.warn { color: #ff6a6a; }
 #fieldui .boss-bar { height: calc(var(--u) * 5); margin-top: calc(var(--u) * 2); background: rgba(0, 0, 0, 0.45); border-radius: 3px; overflow: hidden; box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.2); }
 #fieldui .boss-bar i { display: block; height: 100%; width: 100%; background: linear-gradient(90deg, #ff9a6a, #fff2c8); }
-#fieldui .boss-bar i.spell { background: linear-gradient(90deg, #ff4a6a, #ffd0e0); }
+#fieldui .boss-bar i.sp { background: linear-gradient(90deg, #ff4a6a, #ffd0e0); }
 #fieldui .spell { position: absolute; right: calc(var(--u) * 6); top: calc(var(--u) * 30); max-width: 86%; text-align: right; font-family: var(--mincho); text-shadow: 0 1px 2px #000, 0 0 8px #000; }
 #fieldui .spell-name { font-weight: 800; font-size: 0.95em; color: #fff; padding: 0.12em 0.5em 0.12em 2.2em; background: linear-gradient(270deg, rgba(150, 30, 70, 0.62), rgba(150, 30, 70, 0)); }
 #fieldui .spell-bonus { font-size: 0.85em; color: var(--ink-dim); font-family: var(--font); margin-top: 0.2em; }

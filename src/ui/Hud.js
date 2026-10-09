@@ -112,7 +112,7 @@ export class Hud {
     const hp = Math.max(0, Math.min(1, b.hpRatio));
     const pct = Math.round(hp * 1000) / 10;
     if (this.last.hp !== pct) { this.last.hp = pct; this.bossBar.style.width = pct + '%'; }
-    this.bossBar.classList.toggle('spell', !!b.phase?.spell);
+    this.bossBar.classList.toggle('sp', !!b.phase?.spell);
     const mx = Math.round((b.x / 360 + 0.5) * 1000) / 10;
     if (this.last.mx !== mx) { this.last.mx = mx; this.markerEl.style.left = mx + '%'; }
     const sp = b.phase?.spell && b.phaseActive;
