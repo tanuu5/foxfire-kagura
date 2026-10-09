@@ -21,7 +21,7 @@ export class Screens {
 <section id="title" class="screen hidden">
   <div class="logo">
     <h1 data-i18n="game.title">${t('game.title')}</h1>
-    <p class="sub">FOXFIRE KAGURA</p>
+    <p class="sub" data-i18n="game.sub">${t('game.sub')}</p>
     <p class="tagline" data-i18n="game.tagline">${t('game.tagline')}</p>
   </div>
   <div class="menu">

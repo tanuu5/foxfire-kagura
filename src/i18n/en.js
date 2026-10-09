@@ -1,6 +1,7 @@
 // English dictionary (same keys as ja.js)
 export const en = {
   'game.title': 'Foxfire Kagura',
+  'game.sub': '狐火かぐら',
   'game.tagline': 'The moon will not rise. A fox shrine maiden takes to the sky.',
   'boot.loading': 'Loading…',
   'boot.noWebgl': 'Could not start (please open in a browser with WebGL).',

@@ -1,6 +1,7 @@
 // 日本語の辞書（これが基準。ほかの言語はこのキーをそろえる）
 export const ja = {
   'game.title': '狐火かぐら',
+  'game.sub': 'FOXFIRE KAGURA',
   'game.tagline': '月の昇らない夜、狐の巫女は空へ',
   'boot.loading': '読み込み中…',
   'boot.noWebgl': '起動できませんでした（WebGL が使えるブラウザで開いてください）',
