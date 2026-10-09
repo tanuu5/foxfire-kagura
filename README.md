@@ -2,12 +2,15 @@
 
 月の昇らない中秋の夜、ケモ耳の狐の巫女が夜空を駆ける。ブラウザで遊べる 3D の縦スクロール弾幕シューティング。
 
+[![PLAY](https://img.shields.io/badge/%E2%96%B6%20PLAY-tanuu5.github.io%2Ffoxfire--kagura-e8443a?style=for-the-badge)](https://tanuu5.github.io/foxfire-kagura/)
 [![Made with Claude Opus 5.5 (MAX)](https://img.shields.io/badge/Made%20with-Claude%20Opus%205.5%20%28MAX%29-D97757?style=for-the-badge)](https://www.anthropic.com/claude)
 [![License: MIT (キャラクターを除く)](https://img.shields.io/badge/License-MIT%20%28%E3%82%AD%E3%83%A3%E3%83%A9%E3%82%AF%E3%82%BF%E3%83%BC%E3%82%92%E9%99%A4%E3%81%8F%29-8a6a4a?style=for-the-badge)](./LICENSE)
 
 <p align="center">
   <img src="docs/screenshots/gameplay.webp" width="540" alt="プレイ映像：巨大な満月を背にした月のうさぎのボスが、虹色の弾の輪を何重にも放ち、狐の巫女がその間をすり抜ける">
 </p>
+
+<p align="center"><b><a href="https://tanuu5.github.io/foxfire-kagura/">▶ ブラウザで今すぐ遊ぶ</a></b>（インストール不要。キーボード・ゲームパッド・スマホのタッチ操作に対応）</p>
 
 **Claude Code × Claude Opus 5.5（MAX）** で作りました。
 
@@ -68,6 +71,10 @@
 キャラクターは Three.js の図形と数式で組み立て、髪・しっぽ・袖・袴の揺れはシェーダーの中で曲げています。表情は canvas に描いた顔のテクスチャを描き直して変えています。
 確かめるときは、画面のない Chrome（実際の GPU）でゲームを 1 コマずつ進めて撮り、弾を先読みしてよけるテスト用の自動プレイで各ステージ・各難易度を通して、理不尽な弾の配置がないかを見ました。
 
+## 更新履歴
+
+- **2026-10-10**：公開
+
 ## 開発
 
 ```bash
@@ -104,6 +111,8 @@ npm run build    # dist/ に書き出す（相対パスなので、どこに置�
 ---
 
 ## English
+
+**▶ Play in your browser: https://tanuu5.github.io/foxfire-kagura/**
 
 A 3D vertical-scrolling bullet-hell shooter you can play in your browser. On the night of the harvest moon, the moon refuses to rise — and Inaho, an apprentice fox shrine maiden, takes to the sky. Made with **Claude Code × Claude Opus 5.5 (MAX)**. The game follows your browser's language (English or Japanese); you can also switch it under Settings → Language, or open the page with `?lang=en`.
 
