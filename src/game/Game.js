@@ -38,6 +38,9 @@ export const STATES = {
 };
 
 const EXTENDS = [4e6, 10e6, 18e6, 28e6, 40e6];
+// 記録の画面に並べるスペルカード（出てくる順）
+const SPELL_LIST = ['spell.poko.mid', 'spell.poko.1', 'spell.poko.2', 'spell.poko.3', 'spell.suzu.mid', 'spell.suzu.1', 'spell.suzu.2', 'spell.suzu.3',
+  'spell.tsukuyo.mid', 'spell.tsukuyo.1', 'spell.tsukuyo.2', 'spell.tsukuyo.3', 'spell.tsukuyo.4', 'spell.tsukuyo.5'];
 const DIFF_SCORE = [0.5, 1, 1.2, 1.5];
 
 export class Game {
@@ -138,6 +141,8 @@ export class Game {
   enter_paused() { this.audio.sfx('pause'); }
   enter_title() {
     this.hud.center('');
+    const cleared = Object.values(this.save.data.cleared).some(Boolean);
+    this.world.stage?.cleared?.(cleared);
     this.titleScene?.setVisible(true);
     this.player.model.root.visible = false;
     this.fadeV = 0; this.fadeTarget = 0;
@@ -154,6 +159,7 @@ export class Game {
     this.player.reset();
     this.touch.resetToggles?.();
     this.practice = o.practice ?? stage > 1;
+    if (this.practice && stage > 1) this.player.power = Math.min(4, 1 + (stage - 1) * 1.25); // 練習：先のステージは強くして始める
     this.beginStage(stage);
     this.setState('play');
   }
@@ -269,11 +275,13 @@ export class Game {
     let n = Math.floor((this.acc + TICK * 0.25) / TICK);
     if (n > 4) { n = 4; this.acc = 0; } else this.acc -= n * TICK;
     for (let k = 0; k < n && this.state === 'play'; k++) {
+      if (this.bot) this.botInput?.(inp); // 開発用の自動プレイ（dev/bot.js）
       this.tick();
       inp.dx = inp.dy = 0;
       inp.bomb = false;
       inp.confirm = false;
     }
+    this.world.parallax = this.player.alive ? this.player.x / HALF_W : 0;
     this.world.update(dt, { boss: !!this.boss?.alive, spell: !!this.boss?.phase?.spell });
   }
 
@@ -416,6 +424,17 @@ export class Game {
     this.save.save();
   }
 
+  /** 曲を流し、曲名を少しの間だけ出す（東方の「♪」のように）。 */
+  playMusic(id) {
+    if (this.audio.songId === id) return;
+    this.audio.music(id);
+    const key = 'music.' + id;
+    if (t(key) !== key) this.hud.music(t(key));
+  }
+
+  /** スペルの取得の記録（取得 / 挑戦）。 */
+  spellRecord(name) { return this.save.data.spells[name] || [0, 0]; }
+
   onSpellFail() {
     this.hud.popup(t('msg.bonusFailed'), 0, 110, 'fail');
   }
@@ -456,9 +475,9 @@ export class Game {
       *boss(def, { before, after } = {}) {
         (G.marks ||= []).push([def.midboss ? 'midboss' : 'boss', G.frame]);
         const b = G.spawnBoss(def);
+        if (def.music) G.playMusic(def.music);
         yield* b.enter(0, 120);
         if (before) yield* G.S.dialogue(before);
-        if (def.music) G.audio.music(def.music);
         yield* b.fight();
         if (after) yield* G.S.dialogue(after);
         if (!def.midboss) {
@@ -491,7 +510,7 @@ export class Game {
         G.dialogueOpen = false;
         G.grace = 10;
       },
-      music: (id) => G.audio.music(id),
+      music: (id) => G.playMusic(id),
       /** 台本の区切り。開発用に途中から始めるとき（G.startAt）は、そこまでの区切りを飛ばす。 */
       section(name) {
         if (G.startAt && G.startAt !== name) return false;
@@ -588,6 +607,21 @@ export class Game {
     this.audio.music('title');
   }
 
+  /** 記録の画面：難易度ごとのハイスコアと、スペルカードの取得（出会っていないものは ？？？）。 */
+  syncRecords() {
+    const body = this.screens.modals.records.querySelector('.rec-body');
+    const sv = this.save.data;
+    const fmt = (n) => Math.floor(n).toLocaleString('en-US');
+    let html = '<dl class="rec-best">';
+    for (const d of DIFFS) html += `<dt>${t('diff.' + d)}${sv.cleared[d] ? ' <span class="clear">★</span>' : ''}</dt><dd>${fmt(sv.best[d] || 0)}</dd>`;
+    html += '</dl><h3>' + t('records.spells') + '</h3><ul class="rec-spells">';
+    for (const name of SPELL_LIST) {
+      const r = sv.spells[name];
+      html += r ? `<li><span>${t(name)}</span><b>${r[0]}/${r[1]}</b></li>` : `<li class="unknown"><span>？？？</span><b>0/0</b></li>`;
+    }
+    body.innerHTML = html + '</ul>';
+  }
+
   /** 練習の画面：行ったことのあるステージだけ選べる。 */
   syncPracticeMenu() {
     const m = this.screens.modals.practice;
@@ -627,9 +661,19 @@ export class Game {
     this.renderer.render(dt);
   }
 
-  /** 子機（狐火）と、低速のときの当たり判定の印。 */
+  /** 子機（狐火）と、低速のときの当たり判定の印。ボスの足もとの魔法陣。 */
   renderPlayerFx() {
     const F = this.field, p = this.player;
+    F.auraBatch.begin();
+    const b = this.boss;
+    if (b?.alive && b.showBar && b.z > -50) {
+      const c = b.phase?.spell ? [1, 0.45, 0.7] : [0.6, 0.75, 1];
+      const k = b.phaseActive ? 1 : 0.5;
+      F.auraBatch.push(b.x, b.y - 6, this.time * 0.8, 120, 120, SHAPE.p_ring, c[0], c[1], c[2], 0.34 * k);
+      F.auraBatch.push(b.x, b.y - 6, -this.time * 1.3, 88, 88, SHAPE.p_ring, c[0], c[1], c[2], 0.26 * k);
+      F.auraBatch.push(b.x, b.y - 6, this.time * 2.0, 70, 70, SHAPE.star, c[0] * 0.5, c[1] * 0.5, c[2] * 0.5, 0.18 * k);
+    }
+    F.auraBatch.end();
     F.optBatch.begin();
     F.topBatch.begin();
     if (p.alive && this.state !== 'title' && this.state !== 'result') {

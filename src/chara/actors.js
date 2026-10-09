@@ -19,7 +19,7 @@ export function makePlayerModel(scale = 36) {
   tilt.scale.setScalar(scale);
   girl.root.position.y = -CHEST;
   girl.root.rotation.y = Math.PI;   // 背中をカメラへ
-  tilt.rotation.x = 0.22;           // 少し上から見下ろすように（頭の上と肩が見える）
+  tilt.rotation.x = 0.36;           // 少し上から見下ろすように（頭の上・耳・肩が見える）
   girl.setPose('fly');
   girl.setFace({ eyes: 'open', mouth: 'smile' });
   let vy = 0;

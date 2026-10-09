@@ -33,6 +33,8 @@ export class FieldLayer {
     this.bulletBatch = new SpriteBatch({ name: 'bullets', capacity: 4096, atlas: this.maskAtlas, cols: G, rows: G, mode: 'mask', renderOrder: 40, core: 1.12, glow: 0.5 });
     this.topBatch = new SpriteBatch({ name: 'top', capacity: 64, atlas: this.maskAtlas, cols: G, rows: G, mode: 'mask', renderOrder: 60, core: 1.4, glow: 0.6 });
     this.optBatch = new SpriteBatch({ name: 'options', capacity: 32, atlas: this.colorAtlas, cols: IG, rows: IG, mode: 'color', additive: false, renderOrder: 25 });
+    this.auraBatch = new SpriteBatch({ name: 'aura', capacity: 32, atlas: this.maskAtlas, cols: G, rows: G, mode: 'mask', additive: true, renderOrder: 15, core: 1, glow: 0.6 });
+    scene.add(this.auraBatch.mesh);
     this.laserBatch = new SpriteBatch({ name: 'lasers', capacity: 128, atlas: this.maskAtlas, cols: G, rows: G, mode: 'mask', renderOrder: 39, core: 1.0, glow: 0.3 });
     for (const b of [this.shotBatch, this.itemBatch, this.fxAlpha, this.fxAdd, this.bulletBatch, this.topBatch, this.optBatch, this.laserBatch]) scene.add(b.mesh);
   }

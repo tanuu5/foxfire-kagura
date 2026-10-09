@@ -10,6 +10,9 @@ export const en = {
   'title.start': 'Start',
   'title.practice': 'Stage Practice',
   'title.howto': 'How to Play',
+  'title.records': 'Records',
+  'records.title': 'Records',
+  'records.spells': 'Spell Cards (captured / attempted)',
   'title.settings': 'Settings',
 
   'diff.title': 'Difficulty',
@@ -75,6 +78,7 @@ export const en = {
   'hud.point': 'Point',
   'hud.stage': 'Stage {n}',
   'hud.bonus': 'Bonus {n}',
+  'hud.history': 'History {a}/{b}',
   'hud.bonusFailed': 'Bonus failed',
 
   'msg.extend': 'Extend!',
@@ -163,4 +167,14 @@ export const en = {
   'credit.1': 'Planning & Direction: Tanu',
   'credit.2': 'Development: Claude Code (Claude Opus 5.5)',
   'credit.3': 'All art, 3D models, music and sound effects are generated in code',
+
+  // 曲名
+  'music.title': 'Foxfire Kagura',
+  'music.st1': 'Sunset Approach, a Thousand Vermilion Gates',
+  'music.boss1': 'Ponpoko Shapeshifting Contest',
+  'music.st2': 'The Lanterns Drift Downstream',
+  'music.boss2': 'Night of Nine Lives',
+  'music.st3': 'Sea of Clouds, Stairway to the Moon',
+  'music.boss3': 'Soliloquy of the Lunar Capital',
+  'music.ending': 'The Moon We Watch Together',
 };

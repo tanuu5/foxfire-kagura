@@ -48,6 +48,8 @@ export class TouchControls {
     const target = surface;
     target.addEventListener('touchstart', (e) => {
       for (const tc of e.changedTouches) if (id === null) { id = tc.identifier; lx = tc.clientX; ly = tc.clientY; }
+      // タップで会話を進める（ゲーム中だけ。メニューでは画面のタップを「決定」にしない）
+      if (this.visible) input.setTouchButton('confirm', true);
     }, { passive: true });
     target.addEventListener('touchmove', (e) => {
       for (const tc of e.changedTouches) {
@@ -57,7 +59,10 @@ export class TouchControls {
         lx = tc.clientX; ly = tc.clientY;
       }
     }, { passive: true });
-    const end = (e) => { for (const tc of e.changedTouches) if (tc.identifier === id) id = null; };
+    const end = (e) => {
+      for (const tc of e.changedTouches) if (tc.identifier === id) id = null;
+      if (!e.touches.length) input.setTouchButton('confirm', false);
+    };
     target.addEventListener('touchend', end, { passive: true });
     target.addEventListener('touchcancel', end, { passive: true });
     addEventListener('touchstart', () => { this.enabled = true; this.refresh(); }, { once: true, passive: true });

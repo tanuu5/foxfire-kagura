@@ -10,6 +10,9 @@ export const ja = {
   'title.start': 'はじめる',
   'title.practice': 'ステージ練習',
   'title.howto': 'あそびかた',
+  'title.records': '記録',
+  'records.title': '記録',
+  'records.spells': 'スペルカード（取得 / 挑戦）',
   'title.settings': '設定',
 
   'diff.title': '難易度',
@@ -75,6 +78,7 @@ export const ja = {
   'hud.point': '点',
   'hud.stage': 'ステージ {n}',
   'hud.bonus': 'ボーナス {n}',
+  'hud.history': '取得 {a}/{b}',
   'hud.bonusFailed': 'ボーナス失敗',
 
   'msg.extend': 'エクステンド！',
@@ -168,4 +172,14 @@ export const ja = {
   'credit.1': '企画・ディレクション：たぬ',
   'credit.2': '制作：Claude Code（Claude Opus 5.5）',
   'credit.3': '絵・3D モデル・音楽・効果音は、すべてコードで生成しています',
+
+  // 曲名
+  'music.title': '狐火かぐら',
+  'music.st1': '夕焼け参道、千本の朱',
+  'music.boss1': 'ぽんぽこ化け比べ',
+  'music.st2': '灯籠は川をくだる',
+  'music.boss2': '九つの命の夜',
+  'music.st3': '雲の海、月のきざはし',
+  'music.boss3': '月の都のひとりごと',
+  'music.ending': 'みんなで見る月',
 };

@@ -29,6 +29,7 @@ export class Screens {
     <button data-act="start" data-i18n="title.start">${t('title.start')}</button>
     <button data-act="practice" data-i18n="title.practice">${t('title.practice')}</button>
     <button data-act="howto" data-i18n="title.howto">${t('title.howto')}</button>
+    <button data-act="records" data-i18n="title.records">${t('title.records')}</button>
     <button data-act="settings" data-i18n="title.settings">${t('title.settings')}</button>
   </div>
   <footer class="copyright">© 2026 たぬ</footer>
@@ -52,6 +53,11 @@ export class Screens {
   <button data-act="retry" data-i18n="pause.retry">${t('pause.retry')}</button>
   <button data-act="settings" data-i18n="title.settings">${t('title.settings')}</button>
   <button data-act="toTitle" data-i18n="pause.toTitle">${t('pause.toTitle')}</button>
+</div></section>
+<section id="m-records" class="modal hidden"><div class="card recordcard" data-scroll>
+  <h2 data-i18n="records.title">${t('records.title')}</h2>
+  <div class="rec-body"></div>
+  <button data-act="back" data-i18n="ui.back">${t('ui.back')}</button>
 </div></section>
 <section id="m-gameover" class="modal hidden"><div class="card">
   <h2 data-i18n="gameover.title">${t('gameover.title')}</h2>
@@ -94,7 +100,7 @@ export class Screens {
 </div></section>`);
     this.title = root.querySelector('#title');
     this.modals = {};
-    for (const n of ['pause', 'settings', 'howto', 'diff', 'practice', 'gameover', 'result']) this.modals[n] = root.querySelector('#m-' + n);
+    for (const n of ['pause', 'settings', 'howto', 'diff', 'practice', 'gameover', 'result', 'records']) this.modals[n] = root.querySelector('#m-' + n);
 
     root.addEventListener('click', (e) => {
       const b = e.target.closest('[data-act]');
@@ -105,6 +111,7 @@ export class Screens {
       else if (act === 'continue') cb.onContinue?.();
       else if (act === 'howto') this.open('howto');
       else if (act === 'practice') this.open('practice');
+      else if (act === 'records') this.open('records');
       else if (act === 'settings') this.open('settings');
       else if (act === 'resume') cb.onResume?.();
       else if (act === 'retry') cb.onRetry?.();

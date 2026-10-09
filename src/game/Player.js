@@ -34,7 +34,7 @@ export class Player {
     this.vx = 0;
     if (!keepStock) {
       this.power = 1;
-      this.lives = PLAYER.startLives;
+      this.lives = PLAYER.startLives + (this.G.D === 0 ? 1 : 0); // やさしい：残機が 1 つ多い
       this.bombs = PLAYER.startBombs;
     }
     this.opts = [];           // 子機の位置（ドット、自機からのずれ）

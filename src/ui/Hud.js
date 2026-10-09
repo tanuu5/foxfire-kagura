@@ -44,6 +44,7 @@ export class Hud {
     <div class="enemy-marker hidden">ENEMY</div>
     <div class="dialogue hidden"><div class="speaker"></div><div class="text"></div><div class="next">▼</div></div>
     <div class="popups"></div>
+    <div class="music hidden"></div>
   </div>
 </div>`);
     this.el = root.querySelector('#hud');
@@ -59,6 +60,8 @@ export class Hud {
     this.markerEl = this.el.querySelector('.enemy-marker');
     this.dlgEl = this.el.querySelector('.dialogue');
     this.popEl = this.el.querySelector('.popups');
+    this.musicEl = this.el.querySelector('.music');
+    this.musicT = 0;
     onLangChange(() => { this.last = {}; });
   }
 
@@ -112,7 +115,8 @@ export class Hud {
     if (this.last.spellOn !== !!sp) { this.last.spellOn = !!sp; this.spellEl.classList.toggle('hidden', !sp); }
     if (sp) {
       this.set('spellName', '.spell-name', b.phase.name, (k) => t(k));
-      this.set('spellBonus', '.spell-bonus', b.spellBonusNow, (v) => (v > 0 ? t('hud.bonus', { n: fmt(v) }) : t('hud.bonusFailed')));
+      const rec = G.spellRecord(b.phase.name);
+      this.set('spellBonus', '.spell-bonus', b.spellBonusNow + '|' + rec.join('/'), () => (b.spellBonusNow > 0 ? t('hud.bonus', { n: fmt(b.spellBonusNow) }) : t('hud.bonusFailed')) + '　' + t('hud.history', { a: rec[0], b: rec[1] }));
     }
   }
 
@@ -147,8 +151,21 @@ export class Hud {
     return el;
   }
 
+  /** 曲名を出す（ゲームの時間で 4 秒ほど）。 */
+  music(name) {
+    this.musicEl.textContent = '♪ ' + name;
+    this.musicEl.classList.remove('hidden');
+    this.musicT = 260;
+  }
+
   /** 毎フレーム：出している文字の寿命を進める（ゲームの時間で。CSS のアニメーションは使わない）。 */
   tickPopups() {
+    if (this.musicT > 0) {
+      this.musicT--;
+      const k = Math.min(1, this.musicT / 40, (260 - this.musicT) / 20);
+      this.musicEl.style.opacity = k.toFixed(2);
+      if (this.musicT === 0) this.musicEl.classList.add('hidden');
+    }
     for (const el of [...this.popEl.children]) {
       el._life--;
       const k = el._life / 70;

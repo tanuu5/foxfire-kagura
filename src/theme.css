@@ -147,3 +147,17 @@ html:not([data-device="touch"]) .touch-only { display: none; }
 
 #fieldui .center-msg.credit { font-size: 1.5em; letter-spacing: 0.12em; top: 30%; padding: 0 0.6em; }
 #fieldui .sub-msg.credit { font-size: 1.05em; top: calc(30% + 3em); padding: 0 1em; line-height: 1.5; }
+[data-layout="tall"] #hud .topbar { padding-right: 52px; }
+[data-layout="tall"] #touch .tbtn.pause { top: calc(var(--safe-t) + 3px); right: calc(6px + var(--safe-r)); width: 40px; height: 28px; border-radius: 8px; font-size: 13px; }
+#fieldui .music { position: absolute; right: calc(var(--u) * 8); bottom: calc(var(--u) * 8); font-family: var(--mincho); font-size: 0.9em; color: var(--ink);
+  text-shadow: 0 1px 2px #000, 0 0 6px #000; letter-spacing: 0.06em; }
+.recordcard { width: min(30em, 100%); }
+.recordcard h3 { margin: 0.6em 0 0.2em; font-family: var(--mincho); color: var(--kin); font-size: 1em; letter-spacing: 0.1em; }
+.recordcard .rec-best { display: grid; grid-template-columns: auto 1fr; gap: 0.2em 1em; margin: 0; }
+.recordcard .rec-best dt { font-family: var(--mincho); }
+.recordcard .rec-best dd { margin: 0; text-align: right; font-variant-numeric: tabular-nums; font-weight: 700; }
+.recordcard .clear { color: var(--kin); }
+.recordcard .rec-spells { list-style: none; margin: 0; padding: 0; font-size: 0.86em; }
+.recordcard .rec-spells li { display: flex; justify-content: space-between; gap: 1em; padding: 0.2em 0; border-bottom: 1px solid rgba(255, 214, 150, 0.12); font-family: var(--mincho); }
+.recordcard .rec-spells li.unknown { color: var(--ink-dim); }
+.recordcard .rec-spells b { font-family: var(--font); font-variant-numeric: tabular-nums; }

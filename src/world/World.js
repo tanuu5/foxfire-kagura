@@ -34,6 +34,8 @@ export class World {
     this.spellOn = false;
     this.rig = { pos: new THREE.Vector3(0, 300, 0), yaw: 0, pitch: -0.9, roll: 0 };
     this.shakeAmp = 0;
+    this.parallax = 0;       // 自機の左右の位置（-1〜1）。背景のカメラをわずかに振って奥行きを出す
+    this.parallaxS = 0;
     this.stage = null;
     this.stageId = null;
     this.t = 0;
@@ -112,7 +114,8 @@ export class World {
     this.spellBg.update(dt, this.fov);
     const r = this.rig, cam = this.camera;
     cam.position.copy(r.pos);
-    cam.rotation.set(r.pitch, r.yaw, r.roll, 'YXZ');
+    this.parallaxS += (this.parallax - this.parallaxS) * Math.min(1, dt * 3);
+    cam.rotation.set(r.pitch, r.yaw - this.parallaxS * 0.045, r.roll + this.parallaxS * 0.012, 'YXZ');
     if (this.shakeAmp > 0.01) {
       const a = this.shakeAmp;
       cam.position.x += (Math.random() - 0.5) * a * 0.6;

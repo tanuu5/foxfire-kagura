@@ -52,7 +52,10 @@ try {
         game.start(d, +el.dataset.stage); lock();
       } else if (act === 'continueGame') game.continueGame();
     },
-    onModal: (name, open) => { if (open && name === 'practice') game.syncPracticeMenu(); },
+    onModal: (name, open) => {
+      if (open && name === 'practice') game.syncPracticeMenu();
+      if (open && name === 'records') game.syncRecords();
+    },
     onSettings: (what) => {
       if (what === 'volume') audio.setVolume(settings.volume);
       if (what === 'quality' && !overrides.quality) renderer.setQuality(settings.quality);

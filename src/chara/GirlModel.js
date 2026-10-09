@@ -263,8 +263,8 @@ function ears(spec) {
       const pin = pts.map((p) => p.clone().add(V(0, 0.005, 0.012)));
       inner = tube(pin, (t) => 0.021 * Math.sin(Math.PI * Math.min(1, 0.15 + t * 0.9)) + 0.002, { flat: 0.3, up: V(0, 0, 1), seg: 14, rad: 8 });
     } else {
-      const tall = E.type === 'fox' ? 0.15 : E.type === 'cat' ? 0.105 : 0.085;
-      const wide = E.type === 'fox' ? 0.06 : E.type === 'cat' ? 0.052 : 0.06;
+      const tall = E.type === 'fox' ? 0.165 : E.type === 'cat' ? 0.11 : 0.085;
+      const wide = E.type === 'fox' ? 0.066 : E.type === 'cat' ? 0.054 : 0.06;
       base = E.type === 'tanuki' ? V(s * 0.092, 0.13, -0.01) : V(s * 0.085, 0.125, -0.005);
       const tilt = (E.type === 'tanuki' ? 0.55 : E.type === 'cat' ? 0.38 : 0.3) * s;
       const mk = (w, h, d) => {
@@ -802,7 +802,7 @@ export class GirlModel {
     R[BONE.earR].set(earBack, 0, this.spec.ears.type === 'rabbit' ? fl(0.12, 2.3) - 0.1 : twitch);
     // しっぽ：ゆらゆら（飛ぶときは後ろへ流す）
     const tailUp = fly ? 0.15 + wind * 0.4 : 0.35;
-    R[BONE.tail1].set(this.sp('t1', tailUp, dt, 20, 5), fl(0.35, 2.2) + side * 1.2, 0);
+    R[BONE.tail1].set(this.sp('t1', tailUp, dt, 20, 5), fl(fly ? 0.55 : 0.35, 2.2) + side * 1.2, 0);
     W[BONE.tail1].set(0, 0.25, 0, t * 4);
     R[BONE.tail2].set(this.sp('t2', tailUp * 0.9, dt, 20, 5), fl(-0.3, 2.6) + side * 1.2, 0);
     W[BONE.tail2].set(0, 0.25, 0, t * 4.5 + 1);
