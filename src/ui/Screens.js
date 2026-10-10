@@ -30,6 +30,7 @@ export class Screens {
     <button data-act="practice" data-i18n="title.practice">${t('title.practice')}</button>
     <button data-act="howto" data-i18n="title.howto">${t('title.howto')}</button>
     <button data-act="records" data-i18n="title.records">${t('title.records')}</button>
+    <button data-act="music" data-i18n="title.music">${t('title.music')}</button>
     <button data-act="settings" data-i18n="title.settings">${t('title.settings')}</button>
   </div>
   <footer class="copyright">© 2026 たぬ</footer>
@@ -57,6 +58,12 @@ export class Screens {
 <section id="m-records" class="modal hidden"><div class="card recordcard" data-scroll>
   <h2 data-i18n="records.title">${t('records.title')}</h2>
   <div class="rec-body"></div>
+  <button data-act="back" data-i18n="ui.back">${t('ui.back')}</button>
+</div></section>
+<section id="m-music" class="modal hidden"><div class="card musiccard" data-scroll>
+  <h2 data-i18n="musicroom.title">${t('musicroom.title')}</h2>
+  <div class="mr-list"></div>
+  <p class="note" data-i18n="musicroom.note">${t('musicroom.note')}</p>
   <button data-act="back" data-i18n="ui.back">${t('ui.back')}</button>
 </div></section>
 <section id="m-gameover" class="modal hidden"><div class="card">
@@ -101,7 +108,7 @@ export class Screens {
 </div></section>`);
     this.title = root.querySelector('#title');
     this.modals = {};
-    for (const n of ['pause', 'settings', 'howto', 'diff', 'practice', 'gameover', 'result', 'records']) this.modals[n] = root.querySelector('#m-' + n);
+    for (const n of ['pause', 'settings', 'howto', 'diff', 'practice', 'gameover', 'result', 'records', 'music']) this.modals[n] = root.querySelector('#m-' + n);
 
     root.addEventListener('click', (e) => {
       const b = e.target.closest('[data-act]');
@@ -113,6 +120,7 @@ export class Screens {
       else if (act === 'howto') this.open('howto');
       else if (act === 'practice') this.open('practice');
       else if (act === 'records') this.open('records');
+      else if (act === 'music') this.open('music');
       else if (act === 'fullscreen') {
         const d = document;
         if (d.fullscreenElement) d.exitFullscreen?.().catch(() => {});

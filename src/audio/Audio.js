@@ -5,6 +5,7 @@
 //   audio.sfx('coin', { pitch })   効果音（synth.js の SFX）。{ pos: Vector3 } を渡すと、その場所から聞こえる（3D の定位と距離の減衰）
 //   audio.loop(id, 'coin', { period, pos })   同じ効果音をくり返す（ベル・足音・機械の音など）。stopLoop(id) で止める
 //   audio.music('play')            曲（songs.js）。同じ曲なら何もしない。unlock 前に呼ばれたら、unlock 後に流す
+//   audio.onMusic = (id) => …      曲を頼まれたときに呼ぶ（楽曲視聴の解放の記録に使う）
 //   audio.setAmbience({ wind: 0.5, rain: 1 })   環境音の層（ambience.js の LAYERS。0〜1。渡さなかった層は消える）
 //   audio.listen(camera)           聞く位置と向き（毎フレーム。pos つきの音を使うなら必須）
 //   audio.tick(dt)                 くり返す音を予約する（毎フレーム）
@@ -158,6 +159,7 @@ export class GameAudio {
   music(id, opts = {}) {
     try {
       if (!SONGS[id]) { warn('music', `unknown "${id}"`); return; }
+      this.onMusic?.(id);
       if (!this.ctx || !this.ready) { this.pending = { id, opts }; return; }
       if (this.seq && this.songId === id) return;
       this.seq?.stop(opts.crossfade ?? 0.6);

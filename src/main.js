@@ -51,10 +51,12 @@ try {
         const d = screens.root.querySelector('[data-practice-diff]').value;
         game.start(d, +el.dataset.stage); lock();
       } else if (act === 'continueGame') game.continueGame();
+      else if (act === 'track') game.playTrack(el.dataset.track);
     },
     onModal: (name, open) => {
       if (open && name === 'practice') game.syncPracticeMenu();
       if (open && name === 'records') game.syncRecords();
+      if (name === 'music') { if (open) game.syncMusicRoom(); else game.closeMusicRoom(); }
     },
     onSettings: (what) => {
       if (what === 'volume') audio.setVolume(settings.volume);

@@ -30,7 +30,11 @@ function merge(base, over) {
     if (!(k in over)) continue;
     const b = base[k];
     const o = over[k];
-    if (b && typeof b === 'object' && !Array.isArray(b)) base[k] = merge(b, o && typeof o === 'object' ? o : {});
+    if (b && typeof b === 'object' && !Array.isArray(b)) {
+      const obj = o && typeof o === 'object' && !Array.isArray(o) ? o : {};
+      // 中身の決まっていない入れ物（既定値が {}。スペルの記録など）は、保存されていた中身をそのまま使う
+      base[k] = Object.keys(b).length ? merge(b, obj) : obj;
+    }
     else if (typeof o === typeof b || b === null) base[k] = o;
   }
   return base;
