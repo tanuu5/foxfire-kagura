@@ -103,7 +103,9 @@ export class Hud {
     const b = G.boss;
     const on = !!(b && b.alive && b.showBar);
     if (this.last.bossOn !== on) { this.last.bossOn = on; this.bossEl.classList.toggle('hidden', !on); this.markerEl.classList.toggle('hidden', !on); }
-    if (!on) { if (this.last.spellOn) { this.last.spellOn = false; this.spellEl.classList.add('hidden'); } return; }
+    // 言語を切り替えると this.last が空になる（文言を書き直すため）。出しているかどうかが分からないときも隠す
+    // （true のときだけ隠していたので、スペル中に終えて言語を変えると、次のステージにスペル名が残っていた）
+    if (!on) { if (this.last.spellOn !== false) { this.last.spellOn = false; this.spellEl.classList.add('hidden'); } return; }
     this.set('bossName', '.boss-name', b.nameKey, (k) => t(k));
     this.set('bossStars', '.boss-stars', b.starsLeft, (n) => '★'.repeat(Math.max(0, n)));
     const sec = Math.max(0, b.timeLeft);
