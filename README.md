@@ -16,6 +16,7 @@
 
 稲荷の見習い巫女「いなほ」を操り、敵の弾幕をよけながら撃ち返して、3 つのステージの奥で待つボスたちに挑む縦スクロール弾幕シューティングです。
 主人公・ボス・道中の妖怪は 3D のモデルで、千本鳥居の参道、灯籠の流れる竹林の川、雲海に浮かぶ月の社を 3D の背景の中で飛んでいきます。ボスとの会話は 3D の立ち絵で、スペルカードを宣言するとカットインが入ります。
+本編のほかに、Claude Code のマスコット「Clawd」と弾幕ごっこをするおまけステージ「夜空のターミナル」もあります（タイトルの「おまけ」から）。
 キャラクター・背景・弾・音楽・効果音は、画像や音声のファイルを使わず、すべてコードで生成しています。
 日本語と英語に対応しています（ブラウザの言語に合わせて始まり、設定の「言語」で切り替えられます）。English follows below.
 
@@ -37,6 +38,10 @@
   <tr>
     <td><img src="docs/screenshots/stage3-boss.jpg" alt="雲海の上、巨大な満月の前で、星の弾が川のように斜めに流れる"><br><sub>つくよ（月のうさぎ）の星符「天の川の渡し」。満月を背に、流れる星の川を渡ります。</sub></td>
     <td><img src="docs/screenshots/ending.jpg" alt="エンディング。昇った満月の前に、狐・狸・猫又・うさぎの 4 人が並ぶ"><br><sub>月が昇ると、4 人そろってお月見。</sub></td>
+  </tr>
+  <tr>
+    <td><img src="docs/screenshots/extra-dialogue.jpg" alt="おまけステージの会話。光る格子の夜空で、狐の巫女と、四角いオレンジ色のカニ Clawd が向かい合う"><br><sub>おまけ「夜空のターミナル」。Claude Code のマスコット Clawd が、ターミナルからやってきます。</sub></td>
+    <td><img src="docs/screenshots/extra-diff.jpg" alt="横一列に並んだ赤い弾と緑の弾の行が降りてきて、狐の巫女が行のすき間を抜ける"><br><sub>Clawd の差分「消える赤、増える緑」。赤い行は途中で消え、すき間の違う緑の行に入れ替わります。</sub></td>
   </tr>
 </table>
 
@@ -62,6 +67,7 @@
 - ボスのスペルカードを、被弾もボムもなしで倒すとボーナス。取得の記録は、タイトルの「記録」で見られます。
 - 難易度は 4 つ（やさしい・ふつう・むずかしい・鬼）。一度たどり着いたステージは「ステージ練習」で練習できます。
 - ゲームの中で一度流れた曲は、タイトルの「楽曲視聴」でいつでも聴けます（難易度は問いません）。
+- タイトルの「おまけ」から、Clawd と戦うおまけステージ「夜空のターミナル」を遊べます。パワー最大から始まり、記録は残りません。
 - 設定で、音量・画質・言語・ボタン表示・オートショット・全画面を変えられます。
 
 ## 制作について
@@ -72,8 +78,11 @@
 キャラクターは Three.js の図形と数式で組み立て、髪・しっぽ・袖・袴の揺れはシェーダーの中で曲げています。表情は canvas に描いた顔のテクスチャを描き直して変えています。
 確かめるときは、画面のない Chrome（実際の GPU）でゲームを 1 コマずつ進めて撮り、弾を先読みしてよけるテスト用の自動プレイで各ステージ・各難易度を通して、理不尽な弾の配置がないかを見ました。
 
+おまけステージ「夜空のターミナル」は公開のあとに足したもので、Claude Code（Claude Opus 5.5・推論レベル XHIGH）が作りました。Clawd の 3D モデル（箱だけで組んだドット絵のカニ）・弾幕・会話は Claude Code が、背景（ドットの満月と光の格子の夜空）と曲（三味線・琴・篠笛に 8bit の音を混ぜた「八ビットの月見蟹」）はサブエージェントが担当しています。
+
 ## 更新履歴
 
+- **2026-10-10**：おまけステージ「夜空のターミナル」（Clawd 戦）を追加（v1.1.0）
 - **2026-10-10**：公開。タイトルに「楽曲視聴」を追加
 
 ## 開発
@@ -85,14 +94,14 @@ npm run build    # dist/ に書き出す（相対パスなので、どこに置�
 ```
 
 - URL パラメータ：`?quality=high`（画質を固定）、`?lang=en`（英語）、`?mute`（音なし）、`?dev`（公開版で開発用のフック `window.__dev` を使う）
-- 開発サーバーでは `window.__dev` が使えます。例：`__dev.goto('play', { stage: 2, at: 'boss', phase: 1 })` でステージ 2 のボスの 2 つ目のフェーズから始める、`__dev.preview('stage3')` で背景だけを見る。
+- 開発サーバーでは `window.__dev` が使えます。例：`__dev.goto('play', { stage: 2, at: 'boss', phase: 1 })` でステージ 2 のボスの 2 つ目のフェーズから始める（おまけは `stage: 'ex'`）、`__dev.preview('stage3')` で背景だけを見る。
 - `dev/viewer.html` はモデルの確認台（`?m=inaho` `poko` `suzu` `tsukuyo` `enemies`）、`dev/audio.html` は曲と効果音の試聴台です。
 
 | フォルダ | 中身 |
 | --- | --- |
-| `src/game/` | 弾幕の仕組み（弾・レーザー・自機・敵・ボス・アイテム）、ステージとボスの台本、会話・エンディング |
-| `src/chara/` | 主人公・ボス（ケモ耳の女の子の共通の作り）と、道中の妖怪の 3D モデル |
-| `src/world/` | タイトルと 3 ステージの 3D の背景 |
+| `src/game/` | 弾幕の仕組み（弾・レーザー・自機・敵・ボス・アイテム）、ステージとボスの台本（おまけは `stages/extra.js`・`bosses/clawd.js`）、会話・エンディング |
+| `src/chara/` | 主人公・ボス（ケモ耳の女の子の共通の作り）、道中の妖怪、おまけの Clawd の 3D モデル |
+| `src/world/` | タイトルと 3 ステージ、おまけの 3D の背景 |
 | `src/audio/` | Web Audio で合成する楽器・曲・効果音 |
 | `src/ui/` `src/core/` | 画面・HUD・タッチ操作、入力・描画・保存・多言語 |
 
@@ -104,10 +113,11 @@ npm run build    # dist/ に書き出す（相対パスなので、どこに置�
 
 - コード：MIT License（[LICENSE](LICENSE)）© 2026 たぬ
 - **キャラクターは MIT License の対象外です。** 4 人のキャラクター（いなほ・ぽこ・すず・つくよ）のデザイン、そのモデルを組み立てるコードとデータ（`src/chara/GirlModel.js`・`specs.js`・`face.js`）、キャラクターが写っている画像・動画は、複製・改変・再配布やほかの作品での利用を許諾していません（詳しくは [LICENSE](LICENSE) の例外）。
+- **Clawd も MIT License の対象外です。** おまけステージに登場する Clawd は、Anthropic の Claude Code のマスコットです。このゲームは Anthropic とは関係のない非公式のファン作品で、Clawd のデザイン、そのモデルを組み立てるコード（`src/chara/ClawdModel.js`・`clawdActors.js`）、Clawd が写っている画像について、このリポジトリは何の権利も許諾しません（詳しくは [LICENSE](LICENSE) の例外）。
 - 3D 描画：[three.js](https://threejs.org/)（MIT License）
 - フォント：[Shippori Mincho B1](https://fonts.google.com/specimen/Shippori+Mincho+B1)、[Zen Maru Gothic](https://fonts.google.com/specimen/Zen+Maru+Gothic)（SIL Open Font License。Google Fonts からページで読み込みます）
-- スペルカードやグレイズなどの仕組みは、弾幕シューティングの定番にならったものです。キャラクター・ステージ・弾幕・楽曲は、すべてこの作品のためのオリジナルです。
-- MIT License の対象はこのリポジトリのコードと文章です。「Claude」の名前や商標の使用を許諾するものではありません。
+- スペルカードやグレイズなどの仕組みは、弾幕シューティングの定番にならったものです。キャラクター（おまけの Clawd を除く）・ステージ・弾幕・楽曲は、すべてこの作品のためのオリジナルです。
+- MIT License の対象はこのリポジトリのコードと文章です。「Claude」「Clawd」の名前や商標の使用を許諾するものではありません。
 
 ---
 
@@ -123,7 +133,8 @@ A 3D vertical-scrolling bullet-hell shooter you can play in your browser. On the
 - Everything — characters, backgrounds, bullets, music and sound effects — is generated in code; no image or audio files
 - Keyboard, gamepad and touch (drag anywhere to move, auto fire) are supported
 - A Music Room on the title screen plays every song you have heard in the game
+- An extra stage, "Terminal in the Night Sky", where you face Clawd, the Claude Code mascot (choose Extra on the title screen)
 
 Controls: arrow keys move · `Z` shoot · `Shift` focus (slow, shows your hitbox) · `X` bomb · `Esc` pause.
 
-Code is released under the MIT License, except for the four characters (Inaho, Poko, Suzu and Tsukuyo) — their designs, the code that builds their models and the images that show them are not licensed for reuse (see [LICENSE](LICENSE)). Built with three.js (MIT).
+Code is released under the MIT License, except for the four characters (Inaho, Poko, Suzu and Tsukuyo) — their designs, the code that builds their models and the images that show them are not licensed for reuse — and except for Clawd, the mascot of Anthropic's Claude Code, which appears here as an unofficial fan work not affiliated with or endorsed by Anthropic; this repository grants no rights to Clawd (see [LICENSE](LICENSE)). Built with three.js (MIT).
