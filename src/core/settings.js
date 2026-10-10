@@ -29,6 +29,7 @@ export const overrides = {
   lang: isLang(q.get('lang')) ? q.get('lang') : null,
   mute: q.has('mute'),
   paddiag: q.has('paddiag'),   // ゲームパッド・フォーカスの状態を画面に出す（Safari などで調べるとき）
+  debug: q.has('debug'),       // タイトルの版表記に時刻とコミットのハッシュも出す（不具合の報告を受けるとき）
 };
 
 export const effective = {

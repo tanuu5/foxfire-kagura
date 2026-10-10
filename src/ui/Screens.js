@@ -6,7 +6,12 @@
 //   screens.addModal('report', html)   作品の画面を足す（<section id="m-report" class="modal hidden">…）。
 //                                      中の data-act のボタンのうち、ここで知らないものは cb.onAction(act, el) に届く
 import { t, applyDom, LANGS } from '../core/i18n.js';
-import { settings, QUALITIES, PAD_TYPES } from '../core/settings.js';
+import { settings, overrides, QUALITIES, PAD_TYPES } from '../core/settings.js';
+
+// 版表記。中身はビルド時に vite.config.js が埋める。?debug のときは時刻とハッシュも足す
+const B = __BUILD__;
+const BUILD_FULL = [`v${B.version}`, `${B.date} ${B.time}`, B.hash].filter(Boolean).join(' · ');
+const BUILD_LINE = overrides.debug ? BUILD_FULL : `v${B.version} · ${B.date}`;
 
 const opt = (v, key) => `<option value="${v}" data-i18n="${key}">${t(key)}</option>`;
 const slider = (k) => `<label class="row"><span data-i18n="settings.${k}">${t('settings.' + k)}</span>
@@ -33,7 +38,7 @@ export class Screens {
     <button data-act="music" data-i18n="title.music">${t('title.music')}</button>
     <button data-act="settings" data-i18n="title.settings">${t('title.settings')}</button>
   </div>
-  <footer class="copyright">© 2026 たぬ</footer>
+  <footer class="copyright">© 2026 たぬ<small class="build" title="${BUILD_FULL}">${BUILD_LINE}</small></footer>
 </section>
 <section id="m-diff" class="modal hidden"><div class="card diffcard">
   <h2 data-i18n="diff.title">${t('diff.title')}</h2>
