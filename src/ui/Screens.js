@@ -94,6 +94,7 @@ export class Screens {
     <select data-set="padType">${PAD_TYPES.map((p) => opt(p, 'settings.pad.' + p)).join('')}</select></label>
   <label class="row"><span data-i18n="settings.autoShot">${t('settings.autoShot')}</span>
     <select data-set="autoShot">${opt('off', 'settings.off')}${opt('on', 'settings.on')}</select></label>
+  <p class="note autoshot-note hidden" data-i18n="settings.autoShotTouch">${t('settings.autoShotTouch')}</p>
   <button data-act="fullscreen" class="fs-btn" data-i18n="settings.fullscreen">${t('settings.fullscreen')}</button>
   <button data-act="back" data-i18n="ui.back">${t('ui.back')}</button>
 </div></section>

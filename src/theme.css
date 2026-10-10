@@ -36,6 +36,8 @@ button:disabled:hover { background: rgba(30, 24, 48, 0.86); border-color: var(--
 .gp-focus { outline: 2px solid var(--kin); }
 input[type="range"] { width: 10em; accent-color: var(--shu); }
 select { font: inherit; padding: 0.25em 0.5em; border-radius: 6px; border: 1px solid var(--panel-edge); background: #1d1830; color: var(--ink); }
+select:disabled { opacity: 0.6; }
+.card .autoshot-note { margin-top: -0.2em; text-align: right; font-size: 0.8em; }
 
 /* タイトル */
 .screen#title { justify-content: center; align-items: flex-start; padding-left: calc(7vw + var(--safe-l)); padding-top: calc(4vh + var(--safe-t)); }

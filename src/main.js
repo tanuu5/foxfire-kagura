@@ -56,6 +56,7 @@ try {
       else if (act === 'exdiff') { game.start(el.dataset.diff, 'ex'); lock(); }
     },
     onModal: (name, open) => {
+      if (open && name === 'settings') syncAutoShot();
       if (open && name === 'practice') game.syncPracticeMenu();
       if (open && name === 'records') game.syncRecords();
       if (name === 'music') { if (open) game.syncMusicRoom(); else game.closeMusicRoom(); }
@@ -77,10 +78,20 @@ try {
   <p class="note" data-i18n="extra.note">${t('extra.note')}</p>
   <button data-act="back" data-i18n="ui.back">${t('ui.back')}</button>
 </div></section>`);
+  // タッチ（スマホ・タブレット）で操作しているあいだは、設定によらずショットが自動になる（Game の update_play）。
+  // 設定の「オートショット」も「オン」と見せて変えられないようにし、わけを添える。保存した設定（キーボード・パッド用）はそのまま
+  function syncAutoShot() {
+    const m = screens.modals.settings;
+    const sel = m.querySelector('[data-set="autoShot"]');
+    const touch = input.device === 'touch';
+    sel.disabled = touch;
+    sel.value = touch ? 'on' : settings.autoShot;
+    m.querySelector('.autoshot-note').classList.toggle('hidden', !touch);
+  }
   const nav = new MenuNav(() => screens.current(), () => audio.sfx('ui_move'));
   input.mouseNeedsLock = POINTER_LOCK; // 一人称：閉じ込めるためのクリックで、動作（剣を振るなど）をしない
   game = new Game({ renderer, input, audio, screens, touch, hud, layout });
-  input.onDevice = () => refreshGlyphs(input, settings);
+  input.onDevice = () => { refreshGlyphs(input, settings); syncAutoShot(); };
   if (POINTER_LOCK) {
     renderer.domElement.addEventListener('click', () => { if (game.state === 'play') input.lockPointer(); });
     input.onPointerLock = (locked) => { if (!locked && game.state === 'play' && input.device === 'kb') game.setState('paused'); };
