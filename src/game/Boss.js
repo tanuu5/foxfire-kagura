@@ -2,7 +2,8 @@
 //
 // def = {
 //   nameKey, model, color, r,
-//   phases: [{ spell: false|true, name: 'spell.xxx', hp, time（秒）, bonus（スペルの基本点）, survival（耐久）, run: function* (boss, S) }],
+//   phases: [{ spell: false|true, name: 'spell.xxx', hp, time（秒）, bonus（スペルの基本点）, survival（耐久）, run: function* (boss, S),
+//              end(boss, S)（任意：フェーズの終わりの片づけ。台本が出した子分を消す、など） }],
 //   midboss: true（倒したら逃げる。爆発しない）
 // }
 // 弾幕の台本（run）は、フェーズが終わると止まる（boss.token が持ち主）。台本の中で別の動きを並べたいときは boss.task(gen)。
@@ -127,6 +128,8 @@ export class Boss extends Enemy {
     }
     // 終わり：台本を止め、弾を消す
     this.token.alive = false;
+    p.end?.(this, G.S);
+    this.pose = null;
     this.phaseActive = false;
     this.hittable = false;
     const captured = p.spell && !player.bombedThisPhase && !player.deathsThisPhase && (result === 'defeated' || p.survival);

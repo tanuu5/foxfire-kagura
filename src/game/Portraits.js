@@ -4,11 +4,29 @@
 import * as THREE from 'three';
 import { GirlModel } from '../chara/GirlModel.js';
 import { SPECS } from '../chara/specs.js';
+import { ClawdModel } from '../chara/ClawdModel.js';
 
 const SCALE = 250;
 const CHEST = 0.86;
 
+// Clawd（おまけステージ）：女の子の代わりに箱のカニを大きく出す。GirlModel と同じ口で動かす
+const CLAWD_SCALE = 1.5;
+
 function makePortrait(id) {
+  if (id === 'clawd') {
+    const c = new ClawdModel({ outline: 1.4 });
+    const root = new THREE.Group();
+    root.name = 'portrait-clawd';
+    const inner = new THREE.Group();
+    inner.scale.setScalar(CLAWD_SCALE);
+    inner.rotation.x = 0.18;
+    c.root.position.set(-14, 16, 0);   // 目が会話の枠より上に、体がフィールドの右の端で切れすぎない位置に
+    inner.add(c.root);
+    root.add(inner);
+    root.visible = false;
+    c.setPose('portrait');
+    return { id, girl: c, root, inner, x: 0, y: 0, tx: 0, ty: 0, show: 0, want: 0, talkT: 0 };
+  }
   const girl = new GirlModel(SPECS[id], { outline: 1.4 });
   const root = new THREE.Group();
   root.name = 'portrait-' + id;

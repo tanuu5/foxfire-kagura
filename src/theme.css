@@ -128,6 +128,10 @@ html:not([data-device="touch"]) .touch-only { display: none; }
 #fieldui .popup.bonus { font-family: var(--mincho); font-size: 1.5em; color: #fff2b0; }
 #fieldui .popup.bonus-n { font-size: 1.3em; color: #fff; }
 #fieldui .popup.fail { font-family: var(--mincho); font-size: 1.2em; color: #c8c0d8; }
+/* おまけ（Clawd 戦）：ツールの呼び出し・考え中の表示（ターミナルの文字のように） */
+#fieldui .popup.tool { font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-size: 0.85em; font-weight: 600; color: #ffc2a0;
+  background: rgba(16, 12, 20, 0.72); border: 1px solid rgba(214, 125, 95, 0.55); border-radius: 4px; padding: 0.05em 0.5em; text-shadow: none; }
+#title .menu button.extra-btn { color: #ffbe9a; }
 
 /* ボタンの絵 */
 .gl { background: rgba(40, 32, 64, 0.9); color: #fff; }

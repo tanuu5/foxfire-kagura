@@ -95,7 +95,7 @@ export class Hud {
     this.set('graze', '.v-graze', G.graze, fmt);
     this.set('point', '.v-point', G.pointValue, fmt);
     this.set('diff', '.v-diff', G.difficulty, (d) => t('diff.' + d));
-    this.set('stage', '.v-stage', G.stageNo, (n) => (n ? t('hud.stage', { n }) : ''));
+    this.set('stage', '.v-stage', G.stageNo, (n) => (n === 'ex' ? t('hud.extra') : n ? t('hud.stage', { n }) : ''));
     this.updateBoss(G);
   }
 

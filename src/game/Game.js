@@ -27,6 +27,7 @@ import { SHAPE, ICON } from './atlas.js';
 import { STAGES } from './stages/index.js';
 import { makeEnemyModel, preloadEnemyModels, warmEnemyModels } from '../chara/enemies.js';
 import { makePlayerModel, makeBossModel } from '../chara/actors.js';
+import { makeClawdBossModel, makeClawdMiniModel } from '../chara/clawdActors.js';
 
 // 状態の表（雛形の約束）。title：タイトル ／ hud ／ touch ／ input：play・actions・menu ／ music ／ modal ／ duck
 export const STATES = {
@@ -41,10 +42,11 @@ export const STATES = {
 const EXTENDS = [4e6, 10e6, 18e6, 28e6, 40e6];
 // 記録の画面に並べるスペルカード（出てくる順）
 const SPELL_LIST = ['spell.poko.mid', 'spell.poko.1', 'spell.poko.2', 'spell.poko.3', 'spell.suzu.mid', 'spell.suzu.1', 'spell.suzu.2', 'spell.suzu.3',
-  'spell.tsukuyo.mid', 'spell.tsukuyo.1', 'spell.tsukuyo.2', 'spell.tsukuyo.3', 'spell.tsukuyo.4', 'spell.tsukuyo.5'];
+  'spell.tsukuyo.mid', 'spell.tsukuyo.1', 'spell.tsukuyo.2', 'spell.tsukuyo.3', 'spell.tsukuyo.4', 'spell.tsukuyo.5',
+  'spell.clawd.mid', 'spell.clawd.1', 'spell.clawd.2', 'spell.clawd.3', 'spell.clawd.4'];
 const DIFF_SCORE = [0.5, 1, 1.2, 1.5];
 // 楽曲視聴に並べる曲（流れる順）。ゲームの中で一度流れた曲だけ聴ける（難易度は問わない）
-const TRACKS = ['title', 'st1', 'boss1', 'st2', 'boss2', 'st3', 'boss3', 'ending', 'gameover'];
+const TRACKS = ['title', 'st1', 'boss1', 'st2', 'boss2', 'st3', 'boss3', 'ending', 'gameover', 'clawd'];
 
 export class Game {
   constructor({ renderer, input, audio, screens, touch, hud, layout }) {
@@ -77,11 +79,14 @@ export class Game {
       stage1: () => import('../world/stages/stage1.js'),
       stage2: () => import('../world/stages/stage2.js'),
       stage3: () => import('../world/stages/stage3.js'),
+      clawd: () => import('../world/stages/clawd.js'),   // おまけ（Clawd 戦）
     });
 
     // 見た目のモデル（本物ができるまでは仮のもの）
     this.models = {
-      make: (kind, def) => (kind.startsWith('girl:') ? makeBossModel(kind.slice(5)) : makeEnemyModel(kind, def)),
+      make: (kind, def) => (kind.startsWith('girl:') ? makeBossModel(kind.slice(5))
+        : kind === 'clawd:boss' ? makeClawdBossModel() : kind === 'clawd:mini' ? makeClawdMiniModel(def)
+          : makeEnemyModel(kind, def)),
     };
 
     // 仕組み
@@ -171,8 +176,11 @@ export class Game {
     this.resetScore();
     this.player.reset();
     this.touch.resetToggles?.();
-    this.practice = o.practice ?? stage > 1;
-    if (this.practice && stage > 1) this.player.power = Math.min(4, 1 + (stage - 1) * 1.25); // 練習：先のステージは強くして始める
+    // おまけ（'ex'）：練習あつかい（記録・到達は残さない）で、パワー最大から
+    this.extra = stage === 'ex';
+    this.practice = this.extra || (o.practice ?? stage > 1);
+    if (this.extra) this.player.power = 4;
+    else if (this.practice && stage > 1) this.player.power = Math.min(4, 1 + (stage - 1) * 1.25); // 練習：先のステージは強くして始める
     this.beginStage(stage);
     this.setState('play');
   }
@@ -184,9 +192,9 @@ export class Game {
     this.fadeTarget = 0;
     this.clearField();
     this.stageNo = n;
-    this.world.setStageNow('stage' + n) || this.world.setStageNow('test');
-    this.stageToken = { alive: true };
     const def = STAGES[n] || STAGES.test;
+    this.world.setStageNow(def.world || 'stage' + n) || this.world.setStageNow('test');
+    this.stageToken = { alive: true };
     this.grace = 20;
     this.tasks.add(def.script(this.S), this.stageToken, 'stage' + n);
   }
@@ -552,7 +560,7 @@ export class Game {
       *clear({ final = false } = {}) {
         yield 60;
         G.items.collectAll();
-        const bonus = 1000000 * G.stageNo + Math.floor(G.player.power * 100) * 1000 + G.graze * 100;
+        const bonus = 1000000 * (typeof G.stageNo === 'number' ? G.stageNo : 4) + Math.floor(G.player.power * 100) * 1000 + G.graze * 100;
         G.addScore(bonus);
         G.hud.center(t('msg.stageClear'), t('msg.clearBonus', { n: Math.floor(bonus * DIFF_SCORE[G.D]).toLocaleString('en-US') }));
         G.audio.sfx('clear');
@@ -567,6 +575,7 @@ export class Game {
   }
 
   onStageClear() {
+    if (this.extra) { this.finish(true); return; }
     const d = this.difficulty;
     const next = this.stageNo + 1;
     this.save.data.reached[d] = Math.max(this.save.data.reached[d] || 1, Math.min(3, next));
@@ -619,7 +628,7 @@ export class Game {
     this.fadeV = 0; this.fadeTarget = 0;
     const m = this.screens.modals.result;
     const cleared = this.lastCleared;
-    m.querySelector('.result-title').textContent = cleared ? t('result.allClear') : t('result.title');
+    m.querySelector('.result-title').textContent = this.extra && cleared ? t('result.extraClear') : cleared ? t('result.allClear') : t('result.title');
     const rows = [
       [t('diff.title'), t('diff.' + this.difficulty)],
       [t('hud.score'), this.score.toLocaleString('en-US')],
@@ -741,6 +750,10 @@ export class Game {
     const F = this.field, p = this.player;
     F.auraBatch.begin();
     const b = this.boss;
+    // 体の大きな面が正面を向くボス（Clawd）は、魔法陣を体の後ろに回す（重ねて足すと、体の色が白っぽく抜けて見えるため）
+    const behind = !!b?.def?.auraBehind;
+    F.auraBatch.mesh.position.z = behind ? -60 : 0;
+    F.auraBatch.mesh.material.depthTest = behind;
     if (b?.alive && b.showBar && b.z > -50) {
       const c = b.phase?.spell ? [1, 0.45, 0.7] : [0.6, 0.75, 1];
       const k = b.phaseActive ? 1 : 0.5;

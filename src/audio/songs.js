@@ -1,6 +1,7 @@
-// 曲のデータ（書き方は sequencer.js の先頭）。狐火かぐら：タイトル・3 つのステージ・3 人のボス・エンディング・ゲームオーバー。
+// 曲のデータ（書き方は sequencer.js の先頭）。狐火かぐら：タイトル・3 つのステージ・3 人のボス・エンディング・ゲームオーバー・おまけステージ。
 //   title（イ短調 84）／st1（ニ長調 156）／boss1（ハ長調のシャッフル、拍は 165）／st2（ホ短調・都節 144）／boss2（ニ短調 168）
-//   ／st3（イ長調 → ロ長調 150）／boss3（ハ短調 172）／ending（イ長調 88）／gameover（2 小節。くり返さない）。play は st1 の別名（古いコードが使う）。
+//   ／st3（イ長調 → ロ長調 150）／boss3（ハ短調 172）／ending（イ長調 88）／gameover（2 小節。くり返さない）
+//   ／clawd（おまけステージ。ニ長調 → ホ長調 170、和 × 8bit）。play は st1 の別名（古いコードが使う）。
 // タイトルの主題はエンディングで長調に、つくよ（boss3）のサビの主題もエンディングでやさしい長調になって戻ってくる。
 //
 // 小節の文字列を手で 16 個ずつ数えると間違えるので、下の小さな道具で作る（できあがるのは、ふつうの小節の文字列）：
@@ -647,4 +648,130 @@ const gameover = {
   },
 };
 
-export const SONGS = { title, st1, play: st1, boss1, st2, boss2, st3, boss3, ending, gameover };
+// ================================================================ clawd：おまけステージ（中秋の夜空。ターミナルから来たカニの Clawd と弾幕ごっこ）
+// 道中からボス戦まで、この 1 曲をくり返す。和（三味線・琴・篠笛・太鼓）× 8bit（パルス波のリード、細いパルス波の速い分散和音、
+// ノイズのハイハット）。明るく少しとぼけて、でも走る。ニ長調 → サビ 2 でホ長調、170 BPM、74 小節（約 1 分 45 秒で 1 周）。
+// 前奏（1–4：三味線のリフと 8bit の分散和音、太鼓のふちの「かたかた」はキーを打つ音で、最後の拍子木が Enter
+// ＝ターミナルが立ち上がる。5–8：リードがサビの頭をちらっと、ベースが G A B♭ C と上って A へ）
+// → A（9–24：リードが呼んで琴が答える。20 小節目の Gm6（短調の iv）で少しとぼける）
+// → B（25–32：篠笛。8bit の分散和音が 8 分から 16 分になり、太鼓も 4 つ打ちへ盛り上げる）
+// → サビ 1（33–48：IV△7–V–iii7–vi7 の王道進行。リードの 1 オクターブ下を琴。最後は ♭VI–♭VII–I）
+// → 間奏（49–56：三味線が呼んで、リードが答える。C△7 → B7 でホ長調へ）→ サビ 2（57–72：ホ長調。篠笛が上、リードが 1 オクターブ下）
+// → 後奏（73–74：G → A7 でニ長調の 1 小節目へ）。
+const CL_CH = [
+  'D', 'C/D', 'G/D', 'D', 'Gmaj7', 'A', 'Bb', 'C',                // 1–8 前奏
+  'D', 'D', 'G', 'A', 'D', 'Bm', 'Em7', 'A7',                     // 9–16 A
+  'D', 'F#m', 'G', 'Gm6', 'D/F#', 'B7', 'Em7', 'A7',              // 17–24 A'
+  'Bm', 'G', 'A', 'F#m7', 'Bm', 'G', 'Em7', 'A7sus4 A7',          // 25–32 B
+  'Gmaj7', 'A', 'F#m7', 'Bm7', 'Em7', 'F#m7', 'G', 'A',           // 33–40 サビ 1
+  'Gmaj7', 'A', 'F#m7', 'Bm7', 'Em7', 'A7', 'Bb C', 'D',          // 41–48
+  'Bm', 'G', 'A', 'D', 'Bm', 'G', 'Cmaj7', 'B7sus4 B7',           // 49–56 間奏
+  'Amaj7', 'B', 'G#m7', 'C#m7', 'F#m7', 'G#m7', 'A', 'B',         // 57–64 サビ 2（ホ長調）
+  'Amaj7', 'B', 'G#m7', 'C#m7', 'F#m7', 'B7', 'C D', 'E',         // 65–72
+  'G', 'A7sus4 A7',                                               // 73–74 後奏
+];
+// サビの主旋律（ニ長調。付点 4 分・付点 4 分・4 分の「たーん・たーん・たん」で始まる）。サビ 2 は 2 半音上げて篠笛が吹く。
+const CL_HOOK = mel(`
+  G5:3 F#5:3 G5:2 B5:4 A5:2 G5:2 | A5:6 E5:2 C#5:4 A4:2 C#5:2 | F#5:3 E5:3 F#5:2 A5:4 G5:2 F#5:2 | F#5:6 C#5:2 D5:4 B4:2 D5:2 |
+  E5:3 D5:3 E5:2 G5:4 F#5:2 E5:2 | A5:3 F#5:3 C#5:2 E5:4 F#5:2 A5:2 | B5:6 A5:2 G5:4 D5:2 G5:2 | A5:8 E5:2 F#5:2 G5:2 A5:2 |
+  G5:3 F#5:3 G5:2 B5:4 A5:2 G5:2 | A5:6 E5:2 C#5:4 A4:2 C#5:2 | F#5:3 E5:3 F#5:2 A5:4 G5:2 F#5:2 | F#5:6 C#5:2 D5:4 B4:2 D5:2 |
+  G5:3 F#5:3 E5:2 B5:4 A5:2 G5:2 | A5:6 G5:2 E5:4 C#5:2 E5:2 | F5:3 D5:3 F5:2 G5:3 E5:3 G5:2 | F#5:2 A5:2 D6:8 .:4`);
+// A：リードが前半で呼び、偶数小節の後半は琴が答える（CL_ANS）。
+const CL_A = mel(`
+  F#5:3 A5:3 F#5:2 D5:2 E5:2 F#5:2 A5:2 | D5:4 A4:4 .:8 | G5:3 B5:3 G5:2 D5:2 E5:2 G5:2 A5:2 | E5:4 C#5:4 .:8 |
+  F#5:3 A5:3 F#5:2 D5:2 E5:2 F#5:2 A5:2 | D5:4 B4:4 .:8 | E5:3 G5:3 B5:2 G5:2 F#5:2 E5:2 D5:2 | C#5:4 A4:4 .:8 |
+  A5:6 F#5:2 D5:6 E5:2 | F#5:6 E5:2 C#5:8 | B5:6 A5:2 G5:4 D5:4 | E5:6 D5:2 Bb4:8 |
+  A4:3 D5:3 F#5:2 A5:6 F#5:2 | A5:3 F#5:3 D#5:2 B4:6 D#5:2 | E5:3 G5:3 B5:2 G5:4 E5:2 D5:2 | C#5:4 E5:2 G5:2 A5:2 G5:1 F#5:1 E5:2 D5:1 E5:1`);
+const CL_ANS = mel(`
+  .:8 A5 B5 A5 F#5 E5:2 D5:2 | .:8 E5 F#5 E5 C#5 B4:2 A4:2 | .:8 F#5 A5 F#5 E5 D5:2 B4:2 | .:8 G5 A5 G5 E5 C#5:2 A4:2`);
+// 三味線：前奏のリフ（D のペダルの上で D → C → G と、ミクソリディアンでとぼける）と、間奏の呼びかけ（49–50, 53–54）。
+const CL_RIFF = mel(`
+  D3:2 A3 D4 . D4 E4 F#4 A4:2 F#4 E4 D4:2 A3:2 | C4:2 G3 C4 . C4 D4 E4 G4:2 E4 D4 C4:2 G3:2 |
+  B3:2 G3 B3 . B3 D4 E4 G4:2 E4 D4 B3:2 G3:2 | A3:2 D4 E4 F#4:2 E4 F#4 A4:2 B4:2 A4:2 F#4:2`);
+const CL_CALL = mel(`
+  B3:2 D4 E4 F#4:2 E4 D4 B3:2 A3:2 B3:2 D4:2 | G3:2 B3 D4 E4:2 D4 B3 G3:2 A3:2 B3:4 |
+  B3:2 D4 E4 F#4:2 E4 D4 B3:2 D4:2 F#4:2 A4:2 | B4:2 A4 G4 E4:2 D4 B3 G3:2 A3:2 B3:2 D4:2`);
+const CL_CHOP = '. . 1+3 . . . 1+3 . . . 1+3 . . . 1+3 .';   // 三味線：裏拍の「ちゃっ」
+const CL_BOOT = '1 2 3 4 1 2 3 4 1 2 3 4 5 4 3 2';          // 8bit：ぴろぴろ（ターミナルが立ち上がる）
+const clawd = {
+  id: 'clawd', bpm: 170, gain: 2, chart: CL_CH,
+  tracks: {
+    lead: { inst: 'pulse', vol: 1.3, bars: [...rep(4, null), ...mel(`
+      G5:3 F#5:3 G5:2 B5:4 A5:2 G5:2 | A5:6 E5:2 C#5:4 A4:2 C#5:2 | D5:3 F5:3 Bb5:2 F5:4 D5:2 F5:2 | G5:6 E5:2 C5:4 E5:2 G5:2`),
+      ...CL_A, ...rep(26, null), ...mel(`
+      C#5 E5 A5 E5 C#5 E5 A5 E5 .:2 A5:2 G5:2 E5:2 | F#5:3 E5:3 D5:2 A4:4 .:4`), null, null, ...mel(`
+      E5:3 G5:3 C6:2 B5:4 G5:2 E5:2 | E5:4 F#5:4 D#5:2 F#5:2 A5:2 B5:2`), ...rep(18, null)] },
+    hook: { inst: 'pulse', vol: 1.5, bars: [...rep(32, null), ...CL_HOOK, ...rep(26, null)] },          // サビ 1 の主旋律（少し前に出す）
+    lead2: { inst: 'pulse', vol: 0.8, bars: [...rep(56, null), ...shift(CL_HOOK, -10), null, null] },  // サビ 2：篠笛の 1 オクターブ下
+    fue: { inst: 'fue', vol: 0.85, bars: [...rep(24, null), ...mel(`
+      F#5:6 E5:2 D5:4 B4:4 | D5:3 E5:3 G5:2 B5:6 A5:2 | A5:6 G5:2 E5:4 C#5:4 | E5:6 F#5:2 C#5:8 |
+      F#5:6 E5:2 D5:4 B4:4 | D5:3 E5:3 G5:2 B5:6 D6:2 | B5:6 A5:2 G5:4 E5:4 | D5:4 E5:4 C#5:2 D5:2 E5:2 F#5:2`),
+      ...rep(24, null), ...shift(CL_HOOK, 2), null, null] },
+    koto: { inst: 'koto', vol: 0.9, pan: -0.25, bars: over(arp(CL_CH, [
+      ...rep(4, null), ...rep(20, K_8), ...rep(24, null), ...rep(8, null), ...rep(16, K_RUN), null, null,
+    ], { lo: 55, hi: 69 }), 33, shift(CL_HOOK, -12)) },
+    koto2: { inst: 'koto', vol: 1.3, pan: 0.15, bars: [...rep(9, null), CL_ANS[0], null, CL_ANS[1], null, CL_ANS[2], null, CL_ANS[3], ...rep(56, null),
+      ...mel('D6 B5 A5 G5 E5 D5 B4 A4 G4:4 .:4'), null] },
+    shami: { inst: 'shamisen', vol: 1.2, pan: 0.25, bars: (() => {
+      let b = arp(CL_CH, [...rep(4, null), ...rep(68, CL_CHOP), null, null], { lo: 50, hi: 64 });
+      b = over(b, 1, CL_RIFF);
+      b = over(b, 49, CL_CALL.slice(0, 2));
+      b = over(b, 53, CL_CALL.slice(2));
+      return over(b, 74, mel('.:8 E4:2 D4:2 C#4:2 A3:2'));
+    })() },
+    chip: { inst: 'pulse8', vol: 1.5, pan: -0.3, bars: arp(CL_CH, [
+      ...rep(4, CL_BOOT), ...rep(20, null), ...rep(4, '1 . 2 . 3 . 4 . 5 . 4 . 3 . 2 .'), ...rep(4, K_RUN), ...rep(16, null),
+      K_RUN, K_RUN, null, null, K_RUN, K_RUN, null, null, ...rep(16, null), CL_BOOT, CL_BOOT,
+    ], { lo: 57, hi: 72 }) },
+    pad: { inst: 'pad', vol: 0.6, bars: [...rep(32, null), ...pad(CL_CH.slice(32, 48), { lo: 55, hi: 72 }), ...rep(26, null)] },
+    sho: { inst: 'sho', vol: 0.5, bars: [...rep(24, null), ...pad(CL_CH.slice(24, 32), { lo: 62, hi: 77 }), ...rep(42, null)] },
+    koe: { inst: 'koe', vol: 0.5, bars: [...rep(32, null), ...pad(CL_CH.slice(32, 48), { lo: 55, hi: 72, acc: '?' }), ...rep(8, null),
+      ...pad(CL_CH.slice(56, 72), { lo: 55, hi: 72 }), null, null] },
+    bass: { inst: 'bass', vol: 0.7, bars: bass(CL_CH, [
+      ...rep(4, B_BOUNCE), ...rep(4, B_DRIVE), ...rep(16, B_BOUNCE), ...rep(8, B_8), ...rep(16, B_DRIVE),
+      ...rep(8, B_BOUNCE), ...rep(16, B_DRIVE), B_8, 'r . r . r . r . r . r . o . o .',
+    ], { lo: 30 }) },
+    kit: { inst: 'drums', vol: 0.5, bars: (() => {
+      const boot = { kick: 'x... .... x... ....' };
+      const tease = { kick: 'x... x... x... x...', snare: '.... x... .... x...', hat: '..x. ..x. ..x. ..x.' };
+      const teaseEnd = { kick: 'x... x... x... x...', snare: 'x.x. x.x. xxxx XXXX' };
+      const verse = { kick: 'x... ..x. x... ....', snare: '.... x... .... x...', hat: 'x.x. x.x. x.x. x.x.' };
+      const verseFill = { kick: 'x... ..x. x... ....', snare: '.... x... ..x. xxXX', hat: 'x.x. x.x. .... ....' };
+      const bA = { kick: 'x... .... x.x. ....', snare: '.... x... .... x...', hat: 'x.x. x.x. x.x. x.x.' };
+      const b = { kick: 'x... x... x... x...', snare: '.... x... .... x...', hat: 'xoxo xoxo xoxo xoxo' };
+      const b7 = { kick: 'x... x... x... x...', snare: 'x.x. x.x. x.x. x.x.', hat: 'xoxo xoxo xoxo xoxo' };
+      const b8 = { kick: 'x... x... x... x...', snare: 'xxxx xxxx XXXX XXXX' };
+      const hook = { kick: 'x... x..x x... x...', snare: '.... X... .... X...', hat: '..O. ..O. ..O. ..O.' };
+      const hookFill = { kick: 'x... x... x... x.x.', snare: '.... X... x.xx XXXX', hat: '..O. ..O. .... ....' };
+      const inter = { kick: 'x..x ..x. x..x ..x.', snare: '.... x... .... x...', hat: 'x.x. x.x. x.x. x.x.' };
+      const out1 = { kick: 'x... .... x... ....', snare: '.... .... x.x. xxxx' };
+      const out2 = { kick: 'x... x... x... x...', snare: 'x.x. x.x. xxxx XXXX' };
+      return [null, null, boot, boot, ...rep(3, tease), teaseEnd, ...rep(7, verse), verseFill, ...rep(7, verse), verseFill,
+        ...rep(4, bA), b, b, b7, b8, ...rep(7, hook), hookFill, ...rep(7, hook), hookFill, ...rep(7, inter), teaseEnd,
+        ...rep(7, hook), hookFill, ...rep(7, hook), hookFill, out1, out2];
+    })() },
+    wa: { inst: 'drums', vol: 0.38, bars: (() => {
+      const roll = { taiko: 'X... X... X.X. XXXX' };
+      const tease = { taiko: 'X... .... x... ....', shime: 'o.oo o.oo o.oo o.oo' };
+      const verse = { taiko: 'X... .... .... ....', shime: 'o.o. o.o. o.o. o.o.' };
+      const b = { taiko: 'X... .... x... ....', shime: 'o.oo o.oo o.oo o.oo' };
+      const hook = { taiko: 'X... .... x... ....', shime: 'x.oo x.oo x.oo x.oo' };
+      const matsuri = { taiko: 'X..x ..X. X..x ..x.', shime: 'x.xx x.xx x.xx x.xx' };
+      return [{ taiko: 'X... .... .... ....' }, { taiko: 'x... .... .... ....' }, { taiko: 'X... .... x... ....' }, { taiko: 'X... .... X.X. XXXX' },
+        ...rep(3, tease), roll, ...rep(20, verse), ...rep(3, b), roll, ...rep(16, hook), ...rep(7, matsuri), roll,
+        ...rep(16, hook), { taiko: 'X... X... X... X...' }, roll];
+    })() },
+    bells: { inst: 'drums', vol: 0.7, pan: 0.3, bars: (() => {
+      const kane = { kane: 'x... .... .... ....' };
+      const shine = { kane: 'x... .... .... ....', suzu: 'x... .... .... ....' };
+      const chiki = { chiki: '..o. o..o ..o. o..o' };
+      return [
+        { ka: 'x.x. xx.. x.xx .x..' }, { ka: '.xx. x..x .x.x x...' }, { ka: 'x.xx ..x. xx.. x.x.' }, { ka: 'x.x. x.xx .x.. ....', hyoshigi: '.... .... .... x...' },
+        shine, null, null, null, { suzu: 'x... .... .... ....' }, ...rep(15, null), kane, ...rep(7, null),
+        shine, ...rep(7, null), kane, ...rep(7, null), { hyoshigi: 'x... .... .... ....', kane: 'x... .... .... ....' }, ...rep(6, chiki), null,
+        shine, ...rep(7, null), kane, ...rep(7, null), { suzu: 'x... .... .... ....' }, null];
+    })() },
+  },
+};
+
+export const SONGS = { title, st1, play: st1, boss1, st2, boss2, st3, boss3, ending, gameover, clawd };

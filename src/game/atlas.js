@@ -253,6 +253,32 @@ shape('coin', { size: [13, 17], r: 4, draw: (L, c) => {
   if (L === 'rim') { stroke(c, b, 0.09, 0.9); stroke(c, P.path('M -0.3 -0.3 L 0.3 -0.3 M -0.3 0 L 0.3 0 M -0.3 0.3 L 0.3 0.3'), 0.06, 0.8); }
   if (L === 'glow') radial(c, 0.4, 1, 0.75);
 }, layer: 2 });
+// ドットの四角（おまけステージの Clawd）。回さず、いつも軸にそろえて置く
+const blockShape = (L, c) => {
+  const b = P.roundRect(-0.62, -0.62, 1.24, 1.24, 0.08);
+  if (L === 'body') fill(c, b);
+  if (L === 'core') { fill(c, P.roundRect(-0.36, -0.4, 0.66, 0.66, 0.04), 1, 3); fill(c, P.roundRect(-0.46, -0.48, 0.2, 0.2, 0.02), 1); }
+  if (L === 'rim') stroke(c, P.roundRect(-0.58, -0.58, 1.16, 1.16, 0.06), 0.09, 0.9);
+  if (L === 'glow') radial(c, 0.55, 1, 0.6);
+};
+shape('block', { size: [12, 12], r: 3.4, draw: blockShape, layer: 2 });
+shape('bigblock', { size: [26, 26], r: 8, draw: blockShape, layer: 1 });
+// 花びらの付いた八本の星（✻）：考え中の印。くるくる回る
+shape('spark', { size: [18, 18], r: 4.2, spin: 0.07, draw: (L, c) => {
+  const petals = (len, w) => {
+    const p = new Path2D();
+    for (let k = 0; k < 8; k++) {
+      const a = (k * Math.PI) / 4, ca = Math.cos(a), sa = Math.sin(a);
+      const tip = [ca * len, sa * len], l = [-sa * w + ca * len * 0.45, ca * w + sa * len * 0.45], r = [sa * w + ca * len * 0.45, -ca * w + sa * len * 0.45];
+      p.moveTo(0, 0); p.quadraticCurveTo(l[0], l[1], tip[0], tip[1]); p.quadraticCurveTo(r[0], r[1], 0, 0);
+    }
+    return p;
+  };
+  if (L === 'body') { fill(c, petals(0.9, 0.3)); fill(c, P.circle(0.22)); }
+  if (L === 'core') fill(c, petals(0.55, 0.16), 1, 4);
+  if (L === 'rim') stroke(c, petals(0.86, 0.28), 0.06, 0.8);
+  if (L === 'glow') radial(c, 0.3, 1, 0.75);
+}, layer: 2 });
 
 // ---------------------------------------------------------------- 火花・演出の型（主に足し算の光で使う）
 shape('p_dot', { size: [16, 16], draw: (L, c) => {

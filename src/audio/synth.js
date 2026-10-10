@@ -81,6 +81,21 @@ function filter(ctx, type, f, q = 0.8) {
 
 const hz = (p, def) => fin(p.f, p.m !== undefined ? mtof(fin(p.m, 69)) : def);
 
+/** パルス波（デューティ比 duty）の PeriodicWave。AudioContext ごと・デューティごとに 1 回だけ作る（高い倍音はブラウザが帯域を制限する）。 */
+const pulseWaves = new WeakMap();
+function pulseWave(ctx, duty) {
+  let m = pulseWaves.get(ctx);
+  if (!m) pulseWaves.set(ctx, (m = new Map()));
+  let w = m.get(duty);
+  if (!w) {
+    const n = 48, real = new Float32Array(n + 1), imag = new Float32Array(n + 1);
+    for (let k = 1; k <= n; k++) real[k] = (2 / (k * Math.PI)) * Math.sin(k * Math.PI * duty);
+    w = ctx.createPeriodicWave(real, imag); // 最大が 1 になるようにそろえてくれる
+    m.set(duty, w);
+  }
+  return w;
+}
+
 // ---------------------------------------------------------------- 楽器（シーケンサーから使う）
 export const INSTRUMENTS = {
   /** 矩形波のリード（チップチューン寄り）。 */
@@ -154,6 +169,36 @@ export const INSTRUMENTS = {
     const n = noise(ctx, t, t + (open ? 0.35 : 0.08));
     const g = route(ctx, n.connect(filter(ctx, 'highpass', 7500, 0.7)), out, p);
     perc(g.gain, t, 0.22 * vel, 0.001, open ? 0.3 : 0.05);
+  },
+  /** パルス波のリード（デューティ 25%。ファミコン風の主旋律）。長い音には遅れてビブラート。
+   *  曲の列が rev を書かないときは 0.2 を送る。ノード：osc・(LFO・深さ)・lowpass・gain（＋pan・送り）＝3〜7 */
+  pulse(ctx, out, t, p) {
+    const f = Math.min(8000, Math.max(20, hz(p, 880))), dur = Math.min(30, Math.max(0.02, fin(p.dur, 0.25))), vel = fin(p.vel, 0.8);
+    const end = t + dur + 0.15;
+    const o = osc(ctx, 'square', f, t, end);
+    o.setPeriodicWave(pulseWave(ctx, 0.25));
+    if (dur > 0.3) {
+      const lfo = osc(ctx, 'sine', 5.6, t, end);
+      const depth = ctx.createGain();
+      depth.gain.setValueAtTime(0, t);
+      depth.gain.setValueAtTime(0, t + 0.16);
+      depth.gain.linearRampToValueAtTime(f * 0.007, t + 0.45);
+      lfo.connect(depth).connect(o.frequency);
+    }
+    const lp = filter(ctx, 'lowpass', Math.min(5000, f * 3.5), 0.6); // 2〜5 kHz（効果音の帯域）を埋めすぎないように、上の倍音を少し丸める
+    const g = route(ctx, o.connect(lp), out, { ...p, rev: fin(p.rev, 0.2) });
+    adsr(g.gain, t, 0.15 * vel, 0.005, Math.max(0, dur - 0.03), 0.1);
+  },
+  /** 細いパルス波（デューティ 12.5%）の短い音。速い分散和音（ぴろぴろ）・合いの手に。
+   *  ゲートのように切れる。ノード：osc・lowpass・gain（＋pan・送り）＝3〜5 */
+  pulse8(ctx, out, t, p) {
+    const f = Math.min(8000, Math.max(20, hz(p, 880))), vel = fin(p.vel, 0.8);
+    const d = Math.min(0.5, Math.max(0.05, fin(p.dur, 0.1) * 0.8));
+    const o = osc(ctx, 'square', f, t, t + d + 0.08);
+    o.setPeriodicWave(pulseWave(ctx, 0.125));
+    const lp = filter(ctx, 'lowpass', Math.min(6000, f * 4), 0.6);
+    const g = route(ctx, o.connect(lp), out, { ...p, rev: fin(p.rev, 0.15) });
+    adsr(g.gain, t, 0.12 * vel, 0.003, Math.max(0, d - 0.02), 0.05);
   },
 };
 // 和楽器（wa.js）：koto shamisen fue shakuhachi kokyu sho koe sub taiko shime tsuzumi ka hyoshigi kane chiki suzu

@@ -52,6 +52,8 @@ try {
         game.start(d, +el.dataset.stage); lock();
       } else if (act === 'continueGame') game.continueGame();
       else if (act === 'track') game.playTrack(el.dataset.track);
+      else if (act === 'extra') screens.open('extra');
+      else if (act === 'exdiff') { game.start(el.dataset.diff, 'ex'); lock(); }
     },
     onModal: (name, open) => {
       if (open && name === 'practice') game.syncPracticeMenu();
@@ -66,6 +68,15 @@ try {
       saveSettings();
     },
   });
+  // おまけ（Clawd 戦）：タイトルのメニューにボタンを足し、難易度を選ぶ画面を足す
+  screens.title.querySelector('[data-act="music"]').insertAdjacentHTML('afterend',
+    `<button data-act="extra" class="extra-btn" data-i18n="title.extra">${t('title.extra')}</button>`);
+  screens.addModal('extra', `<section id="m-extra" class="modal hidden"><div class="card diffcard">
+  <h2 data-i18n="extra.title">${t('extra.title')}</h2>
+  ${['easy', 'normal', 'hard', 'lunatic'].map((d) => `<button data-act="exdiff" data-diff="${d}" class="diff-${d}"><b data-i18n="diff.${d}">${t('diff.' + d)}</b><small data-i18n="diff.${d}.desc">${t('diff.' + d + '.desc')}</small></button>`).join('')}
+  <p class="note" data-i18n="extra.note">${t('extra.note')}</p>
+  <button data-act="back" data-i18n="ui.back">${t('ui.back')}</button>
+</div></section>`);
   const nav = new MenuNav(() => screens.current(), () => audio.sfx('ui_move'));
   input.mouseNeedsLock = POINTER_LOCK; // 一人称：閉じ込めるためのクリックで、動作（剣を振るなど）をしない
   game = new Game({ renderer, input, audio, screens, touch, hud, layout });

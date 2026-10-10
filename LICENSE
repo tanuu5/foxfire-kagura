@@ -31,8 +31,7 @@ likenesses, the code and data that define and build their 3D models
 (src/chara/GirlModel.js, src/chara/specs.js and src/chara/face.js), and the
 images and videos that show them (such as those in docs/screenshots/). No
 license is granted to copy, modify, distribute, or use the characters in other
-works. Everything else in this repository is licensed under the MIT License
-above.
+works.
 
 例外：キャラクター
 
@@ -41,5 +40,30 @@ above.
 なるのは、キャラクターのデザイン（外見）、その 3D モデルを定めて組み立てるコード
 とデータ（src/chara/GirlModel.js、src/chara/specs.js、src/chara/face.js）、
 キャラクターが写っている画像・動画（docs/screenshots/ のものなど）です。
-キャラクターの複製・改変・再配布や、ほかの作品での利用は許諾していません。それ以外
-のファイルは、上記の MIT License で利用できます。
+キャラクターの複製・改変・再配布や、ほかの作品での利用は許諾していません。
+
+-------------------------------------------------------------------------------
+
+Exception: Clawd
+
+The extra stage features Clawd, the mascot of Anthropic's Claude Code. Clawd is
+a character of Anthropic, and this game is an unofficial fan work that is not
+affiliated with or endorsed by Anthropic. The MIT License above does not apply
+to Clawd. This exception covers Clawd's design and likeness, the code that
+builds its 3D model (src/chara/ClawdModel.js and src/chara/clawdActors.js),
+and the images and videos that show it. This repository grants no rights to
+Clawd.
+
+例外：Clawd
+
+おまけステージには、Anthropic の Claude Code のマスコット「Clawd」が登場します。
+Clawd は Anthropic のキャラクターで、このゲームは Anthropic とは関係のない、非公式の
+ファン作品です。上記の MIT License は Clawd には適用されません。対象外となるのは、
+Clawd のデザイン（外見）、その 3D モデルを組み立てるコード（src/chara/ClawdModel.js、
+src/chara/clawdActors.js）、Clawd が写っている画像・動画です。このリポジトリは、
+Clawd についての権利を何も許諾しません。
+
+-------------------------------------------------------------------------------
+
+Everything else in this repository is licensed under the MIT License above.
+上記の 2 つの例外を除き、このリポジトリのファイルは上記の MIT License で利用できます。
