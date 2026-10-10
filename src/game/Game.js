@@ -43,6 +43,8 @@ const EXTENDS = [4e6, 10e6, 18e6, 28e6, 40e6];
 const SPELL_LIST = ['spell.poko.mid', 'spell.poko.1', 'spell.poko.2', 'spell.poko.3', 'spell.suzu.mid', 'spell.suzu.1', 'spell.suzu.2', 'spell.suzu.3',
   'spell.tsukuyo.mid', 'spell.tsukuyo.1', 'spell.tsukuyo.2', 'spell.tsukuyo.3', 'spell.tsukuyo.4', 'spell.tsukuyo.5'];
 const DIFF_SCORE = [0.5, 1, 1.2, 1.5];
+// 楽曲視聴に並べる曲（流れる順）。ゲームの中で一度流れた曲だけ聴ける（難易度は問わない）
+const TRACKS = ['title', 'st1', 'boss1', 'st2', 'boss2', 'st3', 'boss3', 'ending', 'gameover'];
 
 export class Game {
   constructor({ renderer, input, audio, screens, touch, hud, layout }) {
@@ -52,7 +54,10 @@ export class Game {
       reached: { easy: 1, normal: 1, hard: 1, lunatic: 1 },
       cleared: { easy: false, normal: false, hard: false, lunatic: false },
       spells: {},   // スペル名 → [取得, 挑戦]
+      music: {},    // 楽曲視聴で聴ける曲 → true
     }, 1);
+    this.unlockMusicFromSave();
+    audio.onMusic = (id) => this.hearMusic(id);
     this.state = 'title';
     this.time = 0;
     this.acc = 0;
@@ -639,6 +644,56 @@ export class Game {
       html += r ? `<li><span>${t(name)}</span><b>${r[0]}/${r[1]}</b></li>` : `<li class="unknown"><span>？？？</span><b>0/0</b></li>`;
     }
     body.innerHTML = html + '</ul>';
+  }
+
+  /** 曲が流れたら、楽曲視聴で聴けるようにする。 */
+  hearMusic(id) {
+    const m = this.save.data.music;
+    if (!TRACKS.includes(id) || m[id]) return;
+    m[id] = true;
+    this.save.save();
+  }
+
+  /** 楽曲視聴ができる前の記録からも解放する（たどり着いたステージ・倒したボス・クリア）。
+   *  reached の既定値は 1 なので、1 のままなら遊んだかどうか分からない。2 以上のときだけ見る */
+  unlockMusicFromSave() {
+    const sv = this.save.data;
+    const m = sv.music;
+    const reached = Math.max(1, ...Object.values(sv.reached));
+    for (let n = 1; reached > 1 && n <= reached; n++) {
+      m['st' + n] = true;
+      if (n > 1) m['boss' + (n - 1)] = true;
+    }
+    if (Object.values(sv.cleared).some(Boolean)) m.boss3 = m.ending = true;
+  }
+
+  /** 楽曲視聴の画面：聴いた曲は曲名と流れる場面、まだの曲は ？？？。流している曲に印を付ける。 */
+  syncMusicRoom() {
+    const list = this.screens.modals.music.querySelector('.mr-list');
+    const heard = this.save.data.music;
+    const cur = this.musicRoomTrack;
+    list.innerHTML = TRACKS.map((id, i) => {
+      const no = String(i + 1).padStart(2, '0');
+      if (!heard[id]) return `<button class="mr-track locked" disabled><span class="mr-no">${no}</span><span class="mr-name">？？？</span></button>`;
+      return `<button data-act="track" data-track="${id}" class="mr-track${id === cur ? ' playing' : ''}"><span class="mr-no">${no}</span>`
+        + `<span class="mr-name">${t('music.' + id)}</span><small class="mr-scene">${t('musicroom.scene.' + id)}</small></button>`;
+    }).join('');
+  }
+
+  /** 楽曲視聴で曲を流す（流している曲をもう一度選ぶと、頭から）。 */
+  playTrack(id) {
+    if (!TRACKS.includes(id) || !this.save.data.music[id]) return;
+    this.audio.stopMusic(0.25);
+    this.audio.music(id, { fadeIn: 0.05 });
+    this.musicRoomTrack = id;
+    for (const b of this.screens.modals.music.querySelectorAll('.mr-track')) b.classList.toggle('playing', b.dataset.track === id);
+  }
+
+  /** 楽曲視聴を閉じたら、タイトルの曲に戻す。 */
+  closeMusicRoom() {
+    if (!this.musicRoomTrack) return;
+    this.musicRoomTrack = null;
+    if (this.state === 'title') { this.audio.stopMusic(0.4); this.audio.music('title'); }
   }
 
   /** 練習の画面：行ったことのあるステージだけ選べる。 */

@@ -178,3 +178,15 @@ html[lang="en"] #hud .side-r .deco { writing-mode: horizontal-tb; font-size: 1.4
 #fieldui .bosstitle { position: absolute; right: calc(var(--u) * 10); top: 38%; text-align: right; font-family: var(--mincho); text-shadow: 0 1px 3px #000, 0 0 10px #000; }
 #fieldui .bosstitle small { display: block; font-size: 0.95em; color: var(--kin); letter-spacing: 0.15em; }
 #fieldui .bosstitle b { display: block; font-size: 2.1em; letter-spacing: 0.3em; color: #fff; margin-top: 0.1em; }
+/* 楽曲視聴 */
+.musiccard { width: min(30em, 100%); }
+.musiccard .mr-list { display: flex; flex-direction: column; gap: 0.3em; }
+.musiccard .mr-track { display: grid; grid-template-columns: 2.2em 1fr; column-gap: 0.4em; align-items: baseline; text-align: left; padding: 0.45em 0.9em; }
+.musiccard .mr-no { grid-row: span 2; font-variant-numeric: tabular-nums; color: var(--kin); font-size: 0.85em; }
+.musiccard .mr-name { font-family: var(--mincho); letter-spacing: 0.06em; }
+.musiccard .mr-scene { grid-column: 2; font-weight: 500; font-size: 0.78em; opacity: 0.72; letter-spacing: 0.02em; }
+.musiccard .mr-track.locked .mr-name { color: var(--ink-dim); }
+.musiccard .mr-track.playing { border-color: var(--kitsune); box-shadow: inset 3px 0 0 var(--kitsune); }
+.musiccard .mr-track.playing .mr-name::before { content: '♪ '; color: var(--kitsune); }
+.musiccard .mr-track:hover .mr-no, .musiccard .mr-track.gp-focus .mr-no,
+.musiccard .mr-track:hover .mr-name::before, .musiccard .mr-track.gp-focus .mr-name::before { color: #fff; }

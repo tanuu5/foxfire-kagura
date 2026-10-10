@@ -61,6 +61,7 @@
 - ボムは画面の弾を消して、しばらく無敵になります。弾に当たった直後でも、すぐボムを押せば助かります（決死）。
 - ボスのスペルカードを、被弾もボムもなしで倒すとボーナス。取得の記録は、タイトルの「記録」で見られます。
 - 難易度は 4 つ（やさしい・ふつう・むずかしい・鬼）。一度たどり着いたステージは「ステージ練習」で練習できます。
+- ゲームの中で一度流れた曲は、タイトルの「楽曲視聴」でいつでも聴けます（難易度は問いません）。
 - 設定で、音量・画質・言語・ボタン表示・オートショット・全画面を変えられます。
 
 ## 制作について
@@ -73,7 +74,7 @@
 
 ## 更新履歴
 
-- **2026-10-10**：公開
+- **2026-10-10**：公開。タイトルに「楽曲視聴」を追加
 
 ## 開発
 
@@ -121,6 +122,7 @@ A 3D vertical-scrolling bullet-hell shooter you can play in your browser. On the
 - Boss conversations with large 3D portraits, and spell card cut-ins
 - Everything — characters, backgrounds, bullets, music and sound effects — is generated in code; no image or audio files
 - Keyboard, gamepad and touch (drag anywhere to move, auto fire) are supported
+- A Music Room on the title screen plays every song you have heard in the game
 
 Controls: arrow keys move · `Z` shoot · `Shift` focus (slow, shows your hitbox) · `X` bomb · `Esc` pause.
 
