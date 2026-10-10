@@ -20,6 +20,8 @@ export const BONE = { hairBack: 1, sideL: 2, sideR: 3, ahoge: 4, tail1: 5, tail2
 
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
 const _q = new THREE.Quaternion(), _d = new THREE.Vector3();
+// 頭が回る中心（頭の群れのローカル）。首の付け根で、襟より少し下
+const NECK_BASE = new THREE.Vector3(0, -0.17, -0.005);
 
 // 体の寸法（m）
 const D = {
@@ -814,6 +816,9 @@ export class GirlModel {
     this.head.rotation.x = fly ? -0.12 : pose === 'dazed' ? 0.25 + Math.sin(t * 3) * 0.08 : Math.sin(t * 1.3) * 0.03;
     this.head.rotation.z = pose === 'dazed' ? Math.sin(t * 2.4) * 0.18 : Math.sin(t * 0.9) * 0.04 - lean * 0.4;
     this.head.rotation.y = pose === 'portrait' ? Math.sin(t * 0.7) * 0.05 : 0;
+    // 頭は首の付け根（襟の中）を中心に回す。頭の中心で回すと、首の下が襟から外へずれて、首と胴が離れて見える
+    _d.copy(NECK_BASE).applyEuler(this.head.rotation);
+    this.head.position.set(0, D.headY - D.waistY, 0).add(NECK_BASE).sub(_d);
     // 腕
     let aL = [0.1, 0, 0.12], aR = [0.1, 0, -0.12];
     // 飛ぶとき：腕を少し広げ、袖の広い面が後ろ（カメラ）から見えるようにひねる
