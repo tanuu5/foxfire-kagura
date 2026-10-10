@@ -663,18 +663,21 @@ function backProps(spec) {
   }
   if (P.sash) {
     // 羽衣：背中の後ろを肩の高さで大きく回り、両ひじにかかって、先は外へ流れて下がる（薄い帯）
-    const pts = [];
+    // 右の先 → 背中の弧 → 左の先を 1 本の帯にする（別々の筒だと、つなぎ目に輪郭線の輪が出て、動くと割れて見える）
+    const arc = [];
     for (let i = 0; i <= 18; i++) {
       const u = i / 18;
       const a = Math.PI * u;
-      pts.push(V(Math.cos(a) * 0.3, 0.2 + Math.sin(a) * 0.2 + Math.sin(u * Math.PI * 3) * 0.015, -0.12 - Math.sin(a) * 0.05));
+      arc.push(V(Math.cos(a) * 0.3, 0.2 + Math.sin(a) * 0.2 + Math.sin(u * Math.PI * 3) * 0.015, -0.12 - Math.sin(a) * 0.05));
     }
-    const sh = tube(pts, () => 0.032, { flat: 0.08, up: V(0, 0, 1), seg: 44, rad: 6, arch: 0.6 });
-    out.push(rig(paint(prep(sh), P.sash), BONE.sash, (x) => Math.abs(x) / 0.3));
-    for (const s of [-1, 1]) {
-      const tail = tube([V(s * 0.3, 0.2, -0.12), V(s * 0.34, 0.06, -0.1), V(s * 0.4, -0.12, -0.09), V(s * 0.38, -0.3, -0.08), V(s * 0.44, -0.48, -0.06)], (t) => 0.032 * (1 - t * 0.35), { flat: 0.08, up: V(0, 0, 1), seg: 28, rad: 6, arch: 0.5 });
-      out.push(rig(paint(prep(tail), P.sash), BONE.sash, (x, y) => Math.min(1, Math.max(0, (0.2 - y) / 0.68))));
-    }
+    const tailPts = (s) => [V(s * 0.3, 0.2, -0.12), V(s * 0.34, 0.06, -0.1), V(s * 0.4, -0.12, -0.09), V(s * 0.38, -0.3, -0.08), V(s * 0.44, -0.48, -0.06)];
+    const pts = [...tailPts(1).reverse().slice(0, -1), ...arc, ...tailPts(-1).slice(1)];
+    // 太さ：弧は一定、垂れた先は細くする。t は全体の長さの割合なので、垂れた部分の割合を先に求める
+    const fT = new THREE.CatmullRomCurve3(tailPts(1), false, 'centripetal').getLength() / new THREE.CatmullRomCurve3(pts, false, 'centripetal').getLength();
+    const width = (t) => { const d = Math.min(t, 1 - t); return d >= fT ? 0.032 : 0.032 * (1 - (1 - d / fT) * 0.35); };
+    const sh = tube(pts, width, { flat: 0.08, up: V(0, 0, 1), seg: 100, rad: 6, arch: 0.6 });
+    // 揺れの量：背中の真ん中 0 → ひじ 0.5 → 先 1（つなぎ目で値がそろうので、動いても割れない）
+    out.push(rig(paint(prep(sh), P.sash), BONE.sash, (x, y) => (y >= 0.2 ? 0.5 * Math.min(1, Math.abs(x) / 0.3) : 0.5 + 0.5 * Math.min(1, (0.2 - y) / 0.68))));
   }
   return out;
 }
