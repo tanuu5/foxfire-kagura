@@ -53,11 +53,13 @@ export class World {
     }));
   }
 
-  /** 読み込み済みの背景にすぐ切り替える（ゲームの 1 コマの中から呼べる）。 */
-  setStageNow(id) {
+  /** 読み込み済みの背景にすぐ切り替える（ゲームの 1 コマの中から呼べる）。
+   *  fresh：同じ背景でも作り直す。背景はボスの場所に着いたことなどを自分で覚えているので、
+   *  同じステージをはじめからやりなおすときは作り直さないと、ボス戦の背景のまま道中が始まる。 */
+  setStageNow(id, { fresh = false } = {}) {
     const Cls = this.classes?.[id];
     if (!Cls) return false;
-    if (this.stageId === id && this.stage) return true;
+    if (this.stageId === id && this.stage && !fresh) return true;
     this._swap(id);
     this.stage = new Cls(this);
     this.t = 0;

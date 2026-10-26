@@ -204,7 +204,8 @@ export class Game {
     this.clearField();
     this.stageNo = n;
     const def = STAGES[n] || STAGES.test;
-    this.world.setStageNow(def.world || 'stage' + n) || this.world.setStageNow('test');
+    // やりなおし（同じステージをもう一度）でも、背景は作り直してはじめの状態から
+    this.world.setStageNow(def.world || 'stage' + n, { fresh: true }) || this.world.setStageNow('test', { fresh: true });
     this.stageToken = { alive: true };
     this.grace = 20;
     this.tasks.add(def.script(this.S), this.stageToken, 'stage' + n);
