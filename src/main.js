@@ -66,6 +66,7 @@ try {
       if (what === 'quality' && !overrides.quality) renderer.setQuality(settings.quality);
       if (what === 'lang') setLang(settings.lang);
       if (what === 'padType' || what === 'lang') refreshGlyphs(input, settings);
+      if (what === 'colorAssist') game.setColorAssist(settings.colorAssist === 'on');
       saveSettings();
     },
   });

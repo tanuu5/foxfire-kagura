@@ -18,6 +18,7 @@ export function* ending(S) {
   G.cancelBullets(false);
   G.items.collectAll();
   G.dialogueOpen = true; // ショットを止める
+  G.ending = true;       // 色覚サポートでも背景を暗くしない（弾の出ない場面）
   G.world.event('moonrise');
   yield 120;
   // 自機は月のほうへ飛んでいく
@@ -75,5 +76,6 @@ export function* ending(S) {
   G.endingCast = null;
   G.hud.center('');
   G.dialogueOpen = false;
+  G.ending = false;
   G.finish(true);
 }

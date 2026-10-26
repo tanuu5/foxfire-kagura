@@ -2,7 +2,7 @@
 // 撃つ位置（owner があればその位置に付いていく）と向き、長さ、太さ。回転（angVel）もできる。
 //
 //   lasers.fire(x, y, angle, { len: 520, width: 18, warn: 50, on: 80, color: 'cyan', owner: boss, angVel: 0.004 })
-import { SHAPE, PALETTE } from './atlas.js';
+import { SHAPE, BULLET_PALETTE } from './atlas.js';
 
 const GROW = 8, SHRINK = 12;
 
@@ -10,7 +10,7 @@ export class Lasers {
   constructor() { this.list = []; }
 
   fire(x, y, angle, o = {}) {
-    const c = typeof o.color === 'string' ? PALETTE[o.color] || PALETTE.white : o.color || PALETTE.white;
+    const c = typeof o.color === 'string' ? BULLET_PALETTE[o.color] || BULLET_PALETTE.white : o.color || BULLET_PALETTE.white;
     const L = {
       x, y, a: angle, len: o.len ?? 560, width: o.width ?? 16,
       warn: o.warn ?? 50, on: o.on ?? 80, t: 0, angVel: o.angVel || 0, owner: o.owner || null,

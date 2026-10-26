@@ -62,6 +62,8 @@ export const ja = {
   'settings.pad.type2': 'タイプ2（×/○/□/△）',
   'settings.autoShot': 'オートショット',
   'settings.autoShotTouch': 'タッチ操作では常にオンです（スマホ・タブレット）',
+  'settings.colorAssist': '色覚サポート',
+  'settings.colorAssistNote': '弾を見分けやすい色にして暗いふちを付け、背景を暗くします',
   'settings.fullscreen': '全画面の切り替え',
   'settings.on': 'オン',
   'settings.off': 'オフ',
@@ -74,7 +76,7 @@ export const ja = {
   'howto.bomb': 'ボム（画面の弾を消して、しばらく無敵）',
   'howto.pause': '一時停止',
   'howto.touch': 'スマホ：画面のどこをなぞっても、指の動いたぶんだけ自機が動きます。ショットは自動。',
-  'howto.items': '油揚げでパワーアップ、金平糖で点数アップ。画面の上のほうへ行くとアイテムが全部集まります。',
+  'howto.items': '白いふちのあるものはアイテム（触れても平気）。「P」の油揚げでパワーアップ、「点」の金平糖で点数アップ。画面の上のほうへ行くとアイテムが全部集まります。',
 
   'hud.hiscore': 'ハイスコア',
   'hud.score': 'スコア',

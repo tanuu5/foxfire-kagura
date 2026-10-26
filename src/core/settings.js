@@ -14,6 +14,7 @@ const store = createStore('foxfire-kagura.settings', {
   lang: '',
   padType: 'auto',
   autoShot: 'off',   // キーボード・パッドでショットを押さなくても撃つ（タッチは常に自動）
+  colorAssist: 'off', // 色覚サポート：弾を見分けやすい色・暗いふちにし、フィールドの背景を暗くする
 }, 1);
 
 export const settings = store.data;
@@ -21,6 +22,7 @@ if (!isLang(settings.lang)) settings.lang = detectLang();
 if (!QUALITIES.includes(settings.quality)) settings.quality = 'auto';
 if (!PAD_TYPES.includes(settings.padType)) settings.padType = 'auto';
 if (!['on', 'off'].includes(settings.autoShot)) settings.autoShot = 'off';
+if (!['on', 'off'].includes(settings.colorAssist)) settings.colorAssist = 'off';
 
 // URL の上書きは保存しない（その回だけ）
 const q = new URLSearchParams(location.search);

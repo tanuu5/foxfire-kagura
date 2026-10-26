@@ -3,7 +3,8 @@
 // 弾のアトラス（buildMaskAtlas）は「型」：R = 本体（弾の色で塗る）、G = 芯（白）、B = 縁（暗く）、A = まわりの光。
 // 4 つの層を別の canvas に灰色で描き、チャンネルに詰めて DataTexture にする
 // （canvas の透明度は保存のときに RGB を掛け算してしまうので、型の入れ物には使えない）。
-// アイテムのアトラス（buildColorAtlas）は色つきの絵そのまま。
+// 色覚サポートでは、型をひとまわり太らせた形（buildOutlineAtlas）を弾のまわりの暗いふちに使う。
+// アイテムのアトラス（buildColorAtlas）は色つきの絵そのまま（アイテムは白いふちのシールにする）。
 //
 // 絵は「上向き」に描く。進む向きが θ（0 = 右、π/2 = 上）の弾は、θ − π/2 だけ回して置く。
 import * as THREE from 'three';
@@ -357,19 +358,57 @@ export function buildMaskAtlas() {
     SHAPE_NAMES.forEach((n, i) => withCell(ctx, i, (c) => SHAPES[n].draw(L, c)));
     return ctx.getImageData(0, 0, W, W).data;
   });
-  // 層を 1 枚に詰める。canvas の上の行がテクスチャの上（v = 1）にくるように、行を逆に並べる
-  const data = new Uint8Array(W * W * 4);
-  for (let y = 0; y < W; y++) {
-    const src = y * W * 4, dst = (W - 1 - y) * W * 4;
-    for (let x = 0; x < W; x++) {
-      const s = src + x * 4 + 3, d = dst + x * 4;   // 灰色の層は透明度（alpha）に濃さが入っている
-      data[d] = layers[0][s];
-      data[d + 1] = layers[1][s];
-      data[d + 2] = layers[2][s];
-      data[d + 3] = layers[3][s];
+  return packLayers(layers, W, 4);
+}
+
+// 色覚サポートの暗いふちの太さ（正規化した座標）。外側ほど薄くする
+const OUTLINE = [[0.1, 1], [0.18, 0.5]];
+
+/** 弾の型を、ひとまわり太らせた形（R に濃さ）。色覚サポートで弾のまわりに付ける暗いふちに使う。
+ *  まわりの光（A）をそのまま暗くすると、三日月の内側まで丸く暗くなり、弾が実際より大きく見えるため、形に沿わせる。 */
+export function buildOutlineAtlas() {
+  const W = CELL * GRID;
+  const body = document.createElement('canvas');
+  body.width = body.height = W;
+  const bctx = body.getContext('2d');
+  SHAPE_NAMES.forEach((n, i) => withCell(bctx, i, (c) => { for (const L of ['body', 'core', 'rim']) SHAPES[n].draw(L, c); }));
+  const cv = document.createElement('canvas');
+  cv.width = cv.height = W;
+  const ctx = cv.getContext('2d', { willReadFrequently: true });
+  const tmp = document.createElement('canvas');
+  tmp.width = tmp.height = CELL;
+  const tctx = tmp.getContext('2d');
+  for (let i = 0; i < SHAPE_NAMES.length; i++) {
+    const x0 = (i % GRID) * CELL, y0 = Math.floor(i / GRID) * CELL;
+    // 外側の薄いふちから描き、内側の濃いふちを重ねる。それぞれ、形をずらして何度も重ねて太らせる（マスの外にははみ出さない）
+    for (const [r, v] of [...OUTLINE].reverse()) {
+      tctx.clearRect(0, 0, CELL, CELL);
+      for (const k of [0.5, 1]) {
+        for (let j = 0; j < 24; j++) {
+          const a = (j / 24) * Math.PI * 2;
+          tctx.drawImage(body, x0, y0, CELL, CELL, Math.cos(a) * r * k * U, Math.sin(a) * r * k * U, CELL, CELL);
+        }
+      }
+      ctx.globalAlpha = v;
+      ctx.drawImage(tmp, x0, y0);
     }
   }
-  const tex = new THREE.DataTexture(data, W, W, THREE.RGBAFormat);
+  ctx.globalAlpha = 1;
+  return packLayers([ctx.getImageData(0, 0, W, W).data], W, 1);
+}
+
+/** 灰色の層（濃さは透明度に入っている）を、チャンネルに詰めて DataTexture にする。 */
+function packLayers(layers, W, n) {
+  // 層を 1 枚に詰める（4 層なら RGBA、1 層なら R だけ）。canvas の上の行がテクスチャの上（v = 1）にくるように、行を逆に並べる
+  const data = new Uint8Array(W * W * n);
+  for (let y = 0; y < W; y++) {
+    const src = y * W * 4, dst = (W - 1 - y) * W * n;
+    for (let x = 0; x < W; x++) {
+      const s = src + x * 4 + 3, d = dst + x * n;   // 灰色の層は透明度（alpha）に濃さが入っている
+      for (let k = 0; k < n; k++) data[d + k] = layers[k][s];
+    }
+  }
+  const tex = new THREE.DataTexture(data, W, W, n === 1 ? THREE.RedFormat : THREE.RGBAFormat);
   tex.colorSpace = THREE.NoColorSpace;
   tex.generateMipmaps = true;
   tex.minFilter = THREE.LinearMipmapLinearFilter;
@@ -379,48 +418,110 @@ export function buildMaskAtlas() {
 }
 
 // ---------------------------------------------------------------- 色つきの絵（アイテム・自機のショット）
+// アイテムは「シール」にする：絵の外側に白い帯、そのまた外に暗い細い線（drawSticker）。
+// 弾は光ってふちがぼやけるので、くっきりした白いふちのものは拾うもの、と色に頼らず見分けられる。
+// 油揚げには「P」、金平糖には「点」の字を入れる（形も色も似た弾がある）。
 const ICON_GRID = 4;
 const ICONS = {};
-function icon(name, draw) { ICONS[name] = draw; }
+/** o.sticker：アイテム（シールにする。中身は縮めて描く） */
+function icon(name, draw, o = {}) { ICONS[name] = { draw, sticker: !!o.sticker }; }
 
 function grad(c, x0, y0, x1, y1, stops) {
   const g = c.createLinearGradient(x0, y0, x1, y1);
   stops.forEach(([o, col]) => g.addColorStop(o, col));
   return g;
 }
-// 油揚げ（パワー）
+
+// アイテムの字の書体。読み込む前はほかの書体で描き、読み込んだら redrawColorAtlas で描き直す
+const ICON_FONT = '"Zen Maru Gothic", "Hiragino Maru Gothic ProN", "Hiragino Sans", "Yu Gothic", "Meiryo", "Noto Sans JP", sans-serif';
+
+/** 字を 1 つ、太い縁つきで真ん中に書く。size は正規化した座標での字の大きさ。
+ *  拡大した座標のまま字を書くとぼやけるブラウザがあるので、画素の座標に戻して書く。 */
+function letter(c, ch, size, fill, edge, dy = 0) {
+  const m = c.getTransform();
+  const s = Math.hypot(m.a, m.b);
+  c.save();
+  c.setTransform(1, 0, 0, 1, m.e, m.f + dy * s);
+  c.font = `700 ${Math.round(size * s)}px ${ICON_FONT}`;
+  const mt = c.measureText(ch);
+  const x = (mt.actualBoundingBoxLeft - mt.actualBoundingBoxRight) / 2;   // 字の墨の部分の真ん中を合わせる
+  const y = (mt.actualBoundingBoxAscent - mt.actualBoundingBoxDescent) / 2;
+  c.lineJoin = 'round';
+  c.lineWidth = size * s * 0.22;
+  c.strokeStyle = edge;
+  c.strokeText(ch, x, y);
+  c.fillStyle = fill;
+  c.fillText(ch, x, y);
+  c.restore();
+}
+
+// シールの作り：中身の縮め方、白い帯と暗い線の太さ（正規化した座標）
+const STICKER = { inner: 0.8, white: 0.13, dark: 0.05 };
+
+/** シールにしたアイテムを 1 マスに描く（x0, y0：マスの左上の画素）。
+ *  絵をずらして何度も重ね、形をふくらませた型を作り、白と暗い色で塗る。 */
+function drawSticker(ctx, draw, x0, y0) {
+  const src = document.createElement('canvas');
+  src.width = src.height = CELL;
+  const g = src.getContext('2d');
+  g.setTransform(U * STICKER.inner, 0, 0, U * STICKER.inner, U, U);
+  draw(g);
+  const grow = (r, color) => {
+    const cv = document.createElement('canvas');
+    cv.width = cv.height = CELL;
+    const c = cv.getContext('2d');
+    for (const k of [0.34, 0.67, 1]) {
+      for (let i = 0; i < 32; i++) {
+        const a = (i / 32) * Math.PI * 2;
+        c.drawImage(src, Math.cos(a) * r * k, Math.sin(a) * r * k);
+      }
+    }
+    c.globalCompositeOperation = 'source-in';
+    c.fillStyle = color;
+    c.fillRect(0, 0, CELL, CELL);
+    return cv;
+  };
+  ctx.drawImage(grow((STICKER.white + STICKER.dark) * U, 'rgba(24, 14, 34, 0.92)'), x0, y0);
+  ctx.drawImage(grow(STICKER.white * U, '#ffffff'), x0, y0);
+  ctx.drawImage(src, x0, y0);
+}
+
+// 油揚げ（パワー）：ふっくらした角の丸い四角に「P」
 icon('power', (c) => {
-  c.fillStyle = grad(c, 0, -0.6, 0, 0.6, [[0, '#ffd27a'], [0.55, '#e8a23c'], [1, '#b8691f']]);
-  c.strokeStyle = '#6b3510'; c.lineWidth = 0.08;
-  const p = P.roundRect(-0.62, -0.5, 1.24, 1.0, 0.22);
-  c.fill(p); c.stroke(p);
-  c.fillStyle = 'rgba(255,240,200,0.75)';
-  for (const [x, y] of [[-0.3, -0.18], [0.12, -0.24], [0.32, 0.12], [-0.12, 0.2], [-0.38, 0.22]]) { c.beginPath(); c.arc(x, y, 0.06, 0, 7); c.fill(); }
-});
-// 大きな油揚げ
+  const p = P.roundRect(-0.8, -0.64, 1.6, 1.28, 0.3);
+  c.fillStyle = grad(c, 0, -0.64, 0, 0.64, [[0, '#ffd884'], [0.55, '#eda43e'], [1, '#c06e1e']]);
+  c.fill(p);
+  c.strokeStyle = '#6b3510'; c.lineWidth = 0.1; c.stroke(p);
+  letter(c, 'P', 1.3, '#fffaf0', '#7a3a0c');
+}, { sticker: true });
+// 大きな油揚げ：いなり寿司の袋のような台形に、大きな「P」
 icon('bigpower', (c) => {
-  c.fillStyle = grad(c, 0, -0.8, 0, 0.8, [[0, '#ffe39b'], [0.5, '#f0a83c'], [1, '#b4621a']]);
-  c.strokeStyle = '#6b3510'; c.lineWidth = 0.08;
-  const p = P.path('M -0.8 -0.5 L 0.8 -0.5 L 0.5 0.75 L -0.5 0.75 Z');
-  c.fill(p); c.stroke(p);
-  c.fillStyle = 'rgba(255,240,200,0.75)';
-  for (const [x, y] of [[-0.4, -0.25], [0.1, -0.3], [0.4, -0.1], [-0.1, 0.15], [0.2, 0.4], [-0.3, 0.42]]) { c.beginPath(); c.arc(x, y, 0.07, 0, 7); c.fill(); }
-});
-// 金平糖（点）
+  const p = P.path('M -0.86 -0.62 Q -0.86 -0.74 -0.72 -0.74 L 0.72 -0.74 Q 0.86 -0.74 0.86 -0.62 L 0.6 0.66 Q 0.56 0.78 0.44 0.78 L -0.44 0.78 Q -0.56 0.78 -0.6 0.66 Z');
+  c.fillStyle = grad(c, 0, -0.74, 0, 0.78, [[0, '#ffe39b'], [0.5, '#f0a83c'], [1, '#b4621a']]);
+  c.fill(p);
+  c.strokeStyle = '#6b3510'; c.lineWidth = 0.09; c.stroke(p);
+  letter(c, 'P', 1.45, '#fffaf0', '#7a3a0c', -0.02);
+}, { sticker: true });
+// 金平糖（点）：角の丸いつぶつぶの玉に「点」（とがった星にすると、星の弾と見分けにくい）
 icon('point', (c) => {
-  const s = P.star(9, 0.82, 0.58, 0);
-  c.fillStyle = grad(c, -0.6, -0.6, 0.6, 0.6, [[0, '#e9f6ff'], [0.5, '#8cc8ff'], [1, '#4b7fe0']]);
-  c.fill(s);
-  c.strokeStyle = '#2b4c9a'; c.lineWidth = 0.08; c.stroke(s);
-  c.fillStyle = 'rgba(255,255,255,0.9)'; c.beginPath(); c.ellipse(-0.22, -0.26, 0.18, 0.12, -0.6, 0, 7); c.fill();
-});
-// 星（弾消しで出る小さな点）
+  const k = new Path2D();
+  for (let i = 0; i <= 120; i++) {
+    const a = (i / 120) * Math.PI * 2, r = 0.78 + 0.07 * Math.cos(a * 12);
+    if (i) k.lineTo(Math.cos(a) * r, Math.sin(a) * r); else k.moveTo(r, 0);
+  }
+  k.closePath();
+  c.fillStyle = grad(c, -0.6, -0.7, 0.6, 0.7, [[0, '#e9f6ff'], [0.5, '#8cc8ff'], [1, '#4b7fe0']]);
+  c.fill(k);
+  c.strokeStyle = '#2b4c9a'; c.lineWidth = 0.09; c.stroke(k);
+  letter(c, '点', 1.12, '#ffffff', '#23418a', 0.02);
+}, { sticker: true });
+// 星（弾消しで出る小さな点。すぐ自機に集まる）：四方に光るきらめき（五つの角の星の弾と形を分ける）
 icon('star', (c) => {
-  const s = P.star(5, 0.86, 0.4);
-  c.fillStyle = grad(c, 0, -0.8, 0, 0.8, [[0, '#fff8d0'], [1, '#ffcf3a']]);
+  const s = P.star(4, 0.95, 0.3, -Math.PI / 2);
+  c.fillStyle = grad(c, 0, -0.9, 0, 0.9, [[0, '#fffbe6'], [1, '#ffd24a']]);
   c.fill(s);
-  c.strokeStyle = '#b07a10'; c.lineWidth = 0.08; c.stroke(s);
-});
+  c.strokeStyle = '#a8740c'; c.lineWidth = 0.1; c.stroke(s);
+}, { sticker: true });
 // 勾玉（ボム）
 icon('bomb', (c) => {
   const m = P.path('M 0.1 -0.8 A 0.56 0.56 0 1 1 0.1 0.32 C 0.1 0.6 -0.2 0.84 -0.52 0.86 C -0.2 0.6 -0.46 0.24 -0.46 -0.24 A 0.56 0.56 0 0 1 0.1 -0.8 Z');
@@ -429,7 +530,7 @@ icon('bomb', (c) => {
   c.strokeStyle = '#0b4a2c'; c.lineWidth = 0.08; c.stroke(m);
   c.fillStyle = '#0b4a2c'; c.beginPath(); c.arc(0.1, -0.24, 0.13, 0, 7); c.fill();
   c.fillStyle = 'rgba(255,255,255,0.75)'; c.beginPath(); c.ellipse(-0.18, -0.5, 0.12, 0.07, -0.7, 0, 7); c.fill();
-});
+}, { sticker: true });
 // お守り（残機）
 icon('life', (c) => {
   const p = P.path('M -0.5 -0.5 L 0 -0.82 L 0.5 -0.5 L 0.5 0.86 L -0.5 0.86 Z');
@@ -439,7 +540,7 @@ icon('life', (c) => {
   c.strokeStyle = '#ffe28a'; c.lineWidth = 0.12; c.beginPath(); c.moveTo(-0.5, -0.36); c.lineTo(0.5, -0.36); c.stroke();
   c.fillStyle = '#fff4d6'; c.fillRect(-0.24, -0.1, 0.48, 0.72);
   c.fillStyle = '#c4213f'; c.fillRect(-0.04, 0.0, 0.08, 0.5);
-});
+}, { sticker: true });
 // 自機のショット：お札（白い紙・赤い縁と字）
 icon('shot_ofuda', (c) => {
   const p = P.roundRect(-0.36, -0.86, 0.72, 1.72, 0.06);
@@ -481,19 +582,12 @@ icon('kira', (c) => {
 
 export const ICON = Object.fromEntries(Object.keys(ICONS).map((n, i) => [n, i]));
 
-/** アイテムなどの色つきの絵のアトラス（CanvasTexture）。 */
+/** アイテムなどの色つきの絵のアトラス（CanvasTexture）。字体を読み込んだら redrawColorAtlas(tex) で描き直す。 */
 export function buildColorAtlas() {
   const W = CELL * ICON_GRID;
   const cv = document.createElement('canvas');
   cv.width = cv.height = W;
-  const ctx = cv.getContext('2d');
-  Object.values(ICONS).forEach((draw, i) => {
-    const cx = (i % ICON_GRID) * CELL + U, cy = Math.floor(i / ICON_GRID) * CELL + U;
-    ctx.save();
-    ctx.setTransform(U, 0, 0, U, cx, cy);
-    draw(ctx);
-    ctx.restore();
-  });
+  paintIcons(cv);
   const tex = new THREE.CanvasTexture(cv);
   tex.colorSpace = THREE.SRGBColorSpace;
   tex.generateMipmaps = true;
@@ -501,10 +595,28 @@ export function buildColorAtlas() {
   tex.anisotropy = 4;
   return tex;
 }
+/** 字体を読み込んだあとに、アトラスを描き直す（アイテムの字を本来の書体にする）。 */
+export function redrawColorAtlas(tex) {
+  paintIcons(tex.image);
+  tex.needsUpdate = true;
+}
+
+function paintIcons(cv) {
+  const ctx = cv.getContext('2d');
+  ctx.clearRect(0, 0, cv.width, cv.height);
+  Object.values(ICONS).forEach(({ draw, sticker }, i) => {
+    const x0 = (i % ICON_GRID) * CELL, y0 = Math.floor(i / ICON_GRID) * CELL;
+    if (sticker) { drawSticker(ctx, draw, x0, y0); return; }
+    ctx.save();
+    ctx.setTransform(U, 0, 0, U, x0 + U, y0 + U);
+    draw(ctx);
+    ctx.restore();
+  });
+}
 export const ICON_GRID_SIZE = ICON_GRID;
 export const MASK_GRID_SIZE = GRID;
 
-/** 弾の色。THREE.Color（リニア）で持つ。 */
+/** 色の名前と色。THREE.Color（リニア）で持つ。火花・破片・敵のモデルの色（弾とレーザーは BULLET_PALETTE）。 */
 export const PALETTE = {};
 const HEX = {
   red: 0xff3b4e, orange: 0xff8a2a, yellow: 0xffd92e, lime: 0x9cff3a, green: 0x2fdc6c, teal: 0x1fd6b4, cyan: 0x38e2ff,
@@ -514,9 +626,22 @@ const HEX = {
 for (const [k, v] of Object.entries(HEX)) PALETTE[k] = new THREE.Color(v);
 export const COLOR_NAMES = Object.keys(HEX);
 
-/** 色つきの絵 1 つを画像（dataURL）にする（HTML の HUD に出す残機・ボムの印など）。 */
+// 色覚サポートの弾の色（ここにない色はそのまま）。赤は明るく（1 型では暗く見える）、緑は青みに寄せて赤・橙・黄と離す。
+// 全部を明るくすると明るさの差がなくなり、紫と水色のように色で動きを分けている組がかえって見分けにくくなるので、直すのは一部だけ
+const ASSIST_HEX = {
+  red: 0xff5f6d, yellow: 0xffe23a, lime: 0xb4ff4a, green: 0x1ee0b4, blue: 0x5577ff, magenta: 0xff4fd8, pink: 0xff9ccf, gold: 0xffd35c,
+};
+
+/** 敵の弾・レーザーの色（撃つときに写す）。setBulletColors(true) で色覚サポートの色にする。 */
+export const BULLET_PALETTE = {};
+export function setBulletColors(assist) {
+  for (const [k, v] of Object.entries(HEX)) (BULLET_PALETTE[k] ||= new THREE.Color()).setHex(assist ? ASSIST_HEX[k] ?? v : v);
+}
+setBulletColors(false);
+
+/** 色つきの絵 1 つを画像（dataURL）にする（HTML の HUD に出す残機・ボムの印など。シールにはしない）。 */
 export function iconDataURL(name, size = 48) {
-  const draw = ICONS[name];
+  const draw = ICONS[name]?.draw;
   const cv = document.createElement('canvas');
   cv.width = cv.height = size;
   const ctx = cv.getContext('2d');

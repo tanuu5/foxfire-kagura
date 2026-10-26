@@ -6,6 +6,7 @@
 //
 // mode
 //   'mask'  ：アトラスの各色を「型」として読む（R = 本体を色で塗る、G = 芯を白く、B = 縁を暗く、A = 光を足す）。弾幕の弾
+//             uHalo を 1 にし、uOutline に型を太らせた形（buildOutlineAtlas）を渡すと、光の代わりに暗いふちになる（色覚サポート）
 //   'color' ：アトラスの色をそのまま使う（アイテムの絵）。色を掛けて濃さを変えられる
 // どちらも「前もって掛けた透明度」で混ぜる（ONE, ONE_MINUS_SRC_ALPHA）。alpha を 0 にして色だけ出せば足し算の光になる
 // （additive: true でまとめてそうする）。
@@ -36,6 +37,8 @@ const FRAG_MASK = /* glsl */ `
   uniform float uCore;     // 芯の明るさ（1 より大きいと Bloom で光る）
   uniform float uGlow;     // 光の強さ
   uniform float uAdd;      // 1 なら全部を足し算の光にする
+  uniform float uHalo;     // 色覚サポート：まわりの光の代わりに、形に沿った暗いふち（背景を暗くする）を付ける（0〜1）
+  uniform sampler2D uOutline; // 型をひとまわり太らせた形（R）。uHalo のときだけ読む
   varying vec2 vUv;
   varying vec3 vColor;
   varying float vAlpha;
@@ -44,9 +47,11 @@ const FRAG_MASK = /* glsl */ `
     vec3 col = mix(vColor, vec3(uCore), m.g);
     col = mix(col, vColor * 0.22, m.b * (1.0 - m.g));
     float a = clamp(max(max(m.r, m.g), m.b), 0.0, 1.0) * vAlpha;
-    vec3 glow = vColor * m.a * vAlpha * uGlow;
+    vec3 glow = vColor * m.a * vAlpha * uGlow * (1.0 - uHalo);
+    float halo = 0.0;
+    if (uHalo > 0.0) halo = clamp(texture2D(uOutline, vUv).r, 0.0, 1.0) * 0.85 * vAlpha * uHalo * (1.0 - a);
     vec3 rgb = col * a + glow;
-    gl_FragColor = vec4(max(rgb, vec3(0.0)), a * (1.0 - uAdd));
+    gl_FragColor = vec4(max(rgb, vec3(0.0)), (a + halo) * (1.0 - uAdd));
   }`;
 
 const FRAG_COLOR = /* glsl */ `
@@ -90,6 +95,8 @@ export class SpriteBatch {
         uCore: { value: core },
         uGlow: { value: glow },
         uAdd: { value: additive ? 1 : 0 },
+        uHalo: { value: 0 },
+        uOutline: { value: null },
       },
       vertexShader: VERT,
       fragmentShader: mode === 'color' ? FRAG_COLOR : FRAG_MASK,

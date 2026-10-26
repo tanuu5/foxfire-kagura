@@ -95,6 +95,9 @@ export class Screens {
   <label class="row"><span data-i18n="settings.autoShot">${t('settings.autoShot')}</span>
     <select data-set="autoShot">${opt('off', 'settings.off')}${opt('on', 'settings.on')}</select></label>
   <p class="note autoshot-note hidden" data-i18n="settings.autoShotTouch">${t('settings.autoShotTouch')}</p>
+  <label class="row"><span data-i18n="settings.colorAssist">${t('settings.colorAssist')}</span>
+    <select data-set="colorAssist">${opt('off', 'settings.off')}${opt('on', 'settings.on')}</select></label>
+  <p class="note assist-note" data-i18n="settings.colorAssistNote">${t('settings.colorAssistNote')}</p>
   <button data-act="fullscreen" class="fs-btn" data-i18n="settings.fullscreen">${t('settings.fullscreen')}</button>
   <button data-act="back" data-i18n="ui.back">${t('ui.back')}</button>
 </div></section>

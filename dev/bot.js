@@ -55,7 +55,7 @@ export function install(G, { bombs = true } = {}) {
             if (d < clear) clear = d;
           }
           for (const e of G.enemies) {
-            if (!e.alive || e.z < -5) continue;
+            if (!e.alive || e.z < -5 || e.defeated) continue;
             const d = (Math.hypot(e.x - x, e.y - y) - e.bodyR - PLAYER.hitR - 6) * w;
             if (d < clear) clear = d;
           }

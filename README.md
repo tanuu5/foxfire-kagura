@@ -61,14 +61,14 @@
 | メニュー | 矢印キーで選ぶ・Z / Enter で決定・X でもどる | 十字キーで選ぶ・A で決定・B でもどる | タップ |
 
 - 当たり判定は、自機の真ん中の小さな点だけです。低速移動にすると見えます。
-- 弾のすれすれをかすめる（グレイズ）と点数が入り、点アイテム（金平糖）の価値も上がります。
-- 油揚げを集めるとパワーアップ。まわりの狐火が増え、ショットが強くなります。画面の上のほうへ行くと、アイテムが全部集まります。
+- 弾のすれすれをかすめる（グレイズ）と点数が入り、点アイテム（「点」の金平糖）の価値も上がります。
+- 「P」の油揚げを集めるとパワーアップ。まわりの狐火が増え、ショットが強くなります。白いふちのあるものはアイテムで、触れても平気です。画面の上のほうへ行くと、アイテムが全部集まります。
 - ボムは画面の弾を消して、しばらく無敵になります。弾に当たった直後でも、すぐボムを押せば助かります（決死）。
 - ボスのスペルカードを、被弾もボムもなしで倒すとボーナス。取得の記録は、タイトルの「記録」で見られます。
 - 難易度は 4 つ（やさしい・ふつう・むずかしい・鬼）。一度たどり着いたステージは「ステージ練習」で練習できます。
 - ゲームの中で一度流れた曲は、タイトルの「楽曲視聴」でいつでも聴けます（難易度は問いません）。
 - タイトルの「おまけ」から、Clawd と戦うおまけステージ「夜空のターミナル」を遊べます。パワー最大から始まり、記録は残りません。
-- 設定で、音量・画質・言語・ボタン表示・オートショット・全画面を変えられます。
+- 設定で、音量・画質・言語・ボタン表示・オートショット・色覚サポート・全画面を変えられます。色覚サポートをオンにすると、弾を見分けやすい色にして暗いふちを付け、フィールドの背景を暗くします。
 
 ## 制作について
 
@@ -132,6 +132,7 @@ A 3D vertical-scrolling bullet-hell shooter you can play in your browser. On the
 - Boss conversations with large 3D portraits, and spell card cut-ins
 - Everything — characters, backgrounds, bullets, music and sound effects — is generated in code; no image or audio files
 - Keyboard, gamepad and touch (drag anywhere to move, auto fire) are supported
+- Items wear white borders and "P" / "点" marks so they never pass for bullets, and a Color vision assist setting gives bullets easier-to-tell colors and dark outlines and dims the background
 - A Music Room on the title screen plays every song you have heard in the game
 - An extra stage, "Terminal in the Night Sky", where you face Clawd, the Claude Code mascot (choose Extra on the title screen)
 

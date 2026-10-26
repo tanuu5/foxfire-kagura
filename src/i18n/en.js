@@ -62,6 +62,8 @@ export const en = {
   'settings.pad.type2': 'Type 2 (×/○/□/△)',
   'settings.autoShot': 'Auto fire',
   'settings.autoShotTouch': 'Always on with touch controls (phones, tablets)',
+  'settings.colorAssist': 'Color vision assist',
+  'settings.colorAssistNote': 'Easier-to-tell bullet colors with dark outlines, and a dimmer background',
   'settings.fullscreen': 'Toggle Fullscreen',
   'settings.on': 'On',
   'settings.off': 'Off',
@@ -74,7 +76,7 @@ export const en = {
   'howto.bomb': 'Bomb (clears bullets and makes you briefly invincible)',
   'howto.pause': 'Pause',
   'howto.touch': 'On phones: drag anywhere on the screen and your character moves as far as your finger does. Shooting is automatic.',
-  'howto.items': 'Fried tofu powers you up, star candies add points. Fly near the top of the screen to collect every item.',
+  'howto.items': 'Anything with a white border is an item and safe to touch. Fried tofu marked "P" powers you up, and star candies marked "点" (points) raise your score. Fly near the top of the screen to collect every item.',
 
   'hud.hiscore': 'Hi-Score',
   'hud.score': 'Score',

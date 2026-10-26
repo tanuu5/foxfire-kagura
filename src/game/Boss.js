@@ -132,8 +132,10 @@ export class Boss extends Enemy {
     this.pose = null;
     this.phaseActive = false;
     this.hittable = false;
+    // 最後のフェーズが終わったら、もう体当たりでもやられない（撃破のあとの会話・去っていく間も）
+    if (i === this.def.phases.length - 1) this.defeated = true;
     const captured = p.spell && !player.bombedThisPhase && !player.deathsThisPhase && (result === 'defeated' || p.survival);
-    G.cancelBullets(true, true);
+    G.cancelBullets(true);
     G.audio.sfx(result === 'defeated' ? 'phase_end' : 'phase_timeout');
     G.fx.burst(this.x, this.y, this.def.color || 'white', 1);
     if (result === 'defeated') G.debris?.burst(this.x, this.y, this.def.color || 'white', 24, true);

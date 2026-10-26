@@ -6,7 +6,8 @@ import { ICON } from './atlas.js';
 const N = 1024;
 export const ITEM = { power: 0, bigpower: 1, point: 2, star: 3, bomb: 4, life: 5, fullpower: 6 };
 const ICON_OF = [ICON.power, ICON.bigpower, ICON.point, ICON.star, ICON.bomb, ICON.life, ICON.bigpower];
-const SIZE = [13, 22, 13, 9, 20, 22, 26];
+// 板の大きさ（シールの白いふちまで含む。絵はこの 8 割ほど）。小さいと弾の粒と見分けにくい
+const SIZE = [17, 26, 17, 12, 24, 26, 28];
 
 export class Items {
   constructor() {

@@ -23,7 +23,7 @@ import { Player } from './Player.js';
 import { Enemy, KIND } from './Enemies.js';
 import { Boss } from './Boss.js';
 import { makeDanmaku } from './danmaku.js';
-import { SHAPE, ICON } from './atlas.js';
+import { SHAPE, ICON, setBulletColors, redrawColorAtlas } from './atlas.js';
 import { STAGES } from './stages/index.js';
 import { makeEnemyModel, preloadEnemyModels, warmEnemyModels } from '../chara/enemies.js';
 import { makePlayerModel, makeBossModel } from '../chara/actors.js';
@@ -109,16 +109,27 @@ export class Game {
     this.flashV = 0;
     this.fadeV = 0;          // 暗転（0〜1）
     this.fadeTarget = 0;
+    this.dimK = 0;           // 色覚サポートで背景を暗くする度合い（0〜1）
     this.difficulty = 'normal';
     this.D = 1;
     this.stageNo = 0;
     this.resetScore();
+    this.setColorAssist(settings.colorAssist === 'on');
+  }
+
+  /** 色覚サポート：弾とレーザーを見分けやすい色・暗いふちにし、遊んでいる間はフィールドの背景を暗くする。
+   *  色は撃つときに写すので、切り替えたときに出ている弾はそのまま（次に撃たれる弾から変わる）。 */
+  setColorAssist(on) {
+    this.colorAssist = !!on;
+    setBulletColors(this.colorAssist);
+    this.field.setColorAssist(this.colorAssist);
   }
 
   get hiScore() { return this.save.data.best[this.difficulty] || 0; }
 
   async init() {
     await Promise.all([loadFonts(), this.world.preload()]);
+    redrawColorAtlas(this.field.colorAtlas);   // アイテムの字（P・点）を読み込んだ書体で描き直す
     // 敵のモデル：形と顔を先に作り、シェーダーを 1 回描いてコンパイルしておく（最初に出たときに止まらないように）
     const kinds = Object.values(KIND);
     preloadEnemyModels(kinds);
@@ -214,6 +225,7 @@ export class Game {
     this.hud.center('');
     this.hud.dialogue(null);
     this.dialogueOpen = false;
+    this.ending = false;
     this.portraits.hideAll();
     this.player.x = 0;
     this.player.y = -HALF_H + 60;
@@ -225,6 +237,9 @@ export class Game {
     input.update(dt);
     this.time += dt;
     this[`update_${this.state}`]?.(dt);
+    // 色覚サポートの背景の暗さ：弾の飛ぶ場面だけ（タイトル・結果・エンディングは暗くしない）。切り替わりは少しずつ
+    const dimTo = this.colorAssist && !this.ending && this.state !== 'title' && this.state !== 'result' ? 1 : 0;
+    this.dimK += (dimTo - this.dimK) * Math.min(1, dt * 3);
     this.audio.tick(dt);
     input.endFrame();
   }
@@ -332,7 +347,8 @@ export class Game {
     if (lr.hit) p.hit();
     if (p.vulnerable) {
       for (const e of this.enemies) {
-        if (!e.alive || e.z < -5) continue;
+        // 倒したボス（撃破のあとの会話・去っていく間）と、奥から近づいている敵には当たらない
+        if (!e.alive || e.z < -5 || e.defeated) continue;
         const dx = e.x - p.x, dy = e.y - p.y, rr = e.bodyR + p.r;
         if (dx * dx + dy * dy < rr * rr) { p.hit(); break; }
       }
@@ -367,12 +383,13 @@ export class Game {
     }
   }
 
-  /** 弾を全部消す。toItems：星のアイテムに変える（ボム・フェーズの終わり）。 */
-  cancelBullets(toItems = true, collect = false) {
+  /** 弾を全部消す。toItems：星のアイテムに変える（ボム・フェーズの終わり）。
+   *  星はすぐ自機に集まる（その場に残してゆっくり落とすと、ボムのあとの画面が星の弾だらけに見えるため）。 */
+  cancelBullets(toItems = true) {
     this.lasers.cancel();
     this.bullets.cancelAll((x, y) => {
       this.fx.vanish(x, y, 'white');
-      if (toItems && this.items.top < 900) this.items.spawn(x, y, ITEM.star, { vx: 0, vy: 1.2, home: collect ? 2 : 0 });
+      if (toItems && this.items.top < 900) this.items.spawn(x, y, ITEM.star, { vx: 0, vy: 1.2, home: 2 });
     });
   }
 
@@ -740,6 +757,7 @@ export class Game {
     this.fx.render(F.fxAdd, F.fxAlpha);
     this.debris.render();
     this.renderPlayerFx();
+    F.setDim(this.dimK);
     this.renderer.setFx({ time: this.time, flash: this.flashV, fade: this.fadeV });
     if (this.state !== 'title') this.hud.update(this);
     this.renderer.render(dt);
@@ -797,7 +815,8 @@ async function loadFonts() {
   if (!document.fonts) return;
   const want = ['700 16px "Zen Maru Gothic"', '700 16px "Shippori Mincho B1"'];
   await Promise.race([
-    Promise.allSettled(want.map((f) => document.fonts.load(f, 'あ狐A'))),
+    // 字体は字の範囲ごとに分けて配られるので、アイテムに書く字（点・P）の入った部分も読んでおく
+    Promise.allSettled(want.map((f) => document.fonts.load(f, 'あ狐A点P'))),
     new Promise((r) => setTimeout(r, 2500)),
   ]);
 }

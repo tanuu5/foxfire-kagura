@@ -6,7 +6,7 @@
 //   const i = bullets.spawn(x, y, 2.5, angle, SHAPE.rice, 'red', { accel: 0.02, maxSpeed: 4 });
 //   const h = bullets.handle(i);  … bullets.alive(h) で、その弾がまだ同じ弾として残っているか
 import { HALF_W, HALF_H, OUT_MARGIN } from './config.js';
-import { SHAPE_INFO, PALETTE } from './atlas.js';
+import { SHAPE_INFO, BULLET_PALETTE } from './atlas.js';
 
 export const MAX_BULLETS = 4096;
 export const BF = { GRAZED: 1, NOCANCEL: 2, NOEDGE: 4, NOHIT: 8, FLIP: 16, BIG_CANCEL: 32 };
@@ -51,7 +51,7 @@ export class Bullets {
     const i = this.free.pop();
     if (i === undefined) return -1;
     const info = SHAPE_INFO[shape];
-    const c = typeof color === 'string' ? PALETTE[color] || PALETTE.white : color;
+    const c = typeof color === 'string' ? BULLET_PALETTE[color] || BULLET_PALETTE.white : color;
     this.alive[i] = 1;
     this.x[i] = x; this.y[i] = y;
     this.speed[i] = speed;
@@ -97,7 +97,7 @@ export class Bullets {
   }
 
   setColor(i, color) {
-    const c = typeof color === 'string' ? PALETTE[color] || PALETTE.white : color;
+    const c = typeof color === 'string' ? BULLET_PALETTE[color] || BULLET_PALETTE.white : color;
     this.r[i] = c.r; this.g[i] = c.g; this.b[i] = c.b;
   }
 
